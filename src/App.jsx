@@ -745,16 +745,6 @@ const Grupos = () => (
         </a>
       </div>
     </div>
-
-    <div style={styles.card}>
-      <h2 style={{ color: '#667eea' }}>🚨 Discord</h2>
-      <p>Junte-se ao nosso servidor para bate-papos por voz, eventos especiais e canais de arte organizados!</p>
-      <div style={{ marginTop: '1rem' }}>
-        <a href="#" style={{ ...styles.button, textDecoration: 'none' }}>
-          Entrar no Discord
-        </a>
-      </div>
-    </div>
   </div>
 );
 
