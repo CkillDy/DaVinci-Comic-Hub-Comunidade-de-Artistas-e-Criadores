@@ -787,7 +787,7 @@ const Dicas = () => (
         <button style={styles.button}>Ver guia</button>
       </div>
       <div style={{ ...styles.card, backgroundColor: '#2a2a3e' }}>
-        <h3 style={{ color: '#ff6b6b' }}>Pincéis para Procreate</h3>
+        <h3 style={{ color: '#ff6b6b' }}>Pincéis para IbispaintXh3>
         <p>Baixe pacotes de pincéis gratuitos e premium para suas artes digitais.</p>
         <button style={styles.button}>Ver pincéis</button>
       </div>
