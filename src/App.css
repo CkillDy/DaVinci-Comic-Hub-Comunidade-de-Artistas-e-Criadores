@@ -1,0 +1,18 @@
+/* Importação de fontes */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+* {
+  padding: 0px;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
+/* Estilos Globais */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background-color: #0d0d1b;
+  color: #e0e0e0;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
