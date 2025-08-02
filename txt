@@ -1,0 +1,642 @@
+/* Importação de fontes */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+* {
+  padding: 0px;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
+/* Estilos Globais */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background-color: #0d0d1b;
+  color: #e0e0e0;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+
+/* Estilos Gerais */
+/* Header */
+.header {
+  background: linear-gradient(135deg, #261b44ff 0%, #092324ff 100%);
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Navegação */
+.nav {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  color: #fff;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  transition: all 0.3s;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link-active {
+  background-color: #fff;
+  color: #764ba2;
+  font-weight: bold;
+}
+
+/* Main */
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 200px);
+}
+
+/* Slider */
+.slider-container {
+  max-width: 100%;
+  min-height: 180px;
+  margin: 2rem auto;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+  background-color: #1a1a2e;
+}
+
+.slider-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.slider-caption {
+  background: rgba(10, 10, 24, 0.8);
+  color: #fff;
+  padding: 1rem;
+  font-size: 1rem;
+  text-align: center;
+  font-weight: bold;
+  border-top: 1px solid #333;
+}
+
+/* Grid de Desafios */
+.challenge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.challenge-card {
+  width: 220px;
+  background-color: #1a1a2e;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  border: 1px solid #16213e;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.challenge-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 25px rgba(139, 90, 187, 0.4);
+}
+
+.challenge-card-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.challenge-card-text {
+  padding: 0.8rem;
+  color: #eee;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  background-color: #0a0a18ff;
+}
+
+.challenge-title {
+  font-weight: bold;
+  font-size: 1.05rem;
+  margin-bottom: 0.3rem;
+  color: #8b5abb;
+}
+
+.challenge-autor {
+  font-size: 0.85rem;
+  color: #bbb;
+}
+
+/* Card Padrão */
+.card {
+  background-color: #1a1a2e;
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid #16213e;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+/* Botão */
+.button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+/* Input */
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #333;
+  background-color: #2a2a3e;
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Rodapé */
+.footer {
+  background-color: #16213e;
+  text-align: center;
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+.votacao-main {
+  padding: 2rem;
+}
+
+.votacao-titulo {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #667eea;
+}
+
+.votacao-card {
+  background-color: #1a1a2e;
+  padding: 2rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.votacao-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.votacao-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  background-color: #0f0f1a;
+  color: white;
+}
+
+.votacao-button {
+  width: 100%;
+  padding: 1rem;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.votacao-label {
+  display: block;
+  cursor: pointer;
+  padding: 1rem;
+  border: 2px solid transparent;
+  border-radius: 100px;
+  transition: 0.3s;
+}
+
+.votacao-label.ativo {
+  border-color: #667eea;
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+.votacao-label img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+
+.votacao-nome {
+  color: #667eea;
+}
+
+.votacao-desafio {
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-top: 0.25rem;
+}
+
+.votacao-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #4caf50;
+  color: #fff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.votacao-msg {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.votacao-msg.sucesso {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+}
+
+.votacao-msg.erro {
+  background-color: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.envio-main {
+  max-width: 700px;
+  margin: 3rem auto;
+  padding: 2rem;
+}
+
+.envio-card {
+  background-color: #1c1c2e;
+  border-radius: 10px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.envio-titulo {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #667eea;
+}
+
+.envio-alerta {
+  background-color: rgba(102, 126, 234, 0.2);
+  border: 1px solid #667eea;
+  margin-bottom: 2rem;
+}
+
+.envio-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.envio-lembrete {
+  background-color: rgba(102, 126, 234, 0.1);
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.envio-lembrete h4 {
+  color: #667eea;
+  margin-bottom: 0.5rem;
+}
+
+.envio-lembrete ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.envio-button {
+  background-color: #667eea;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.envio-button:hover {
+  background-color: #556cd6;
+}
+
+
+/* BrushGallery */
+
+.envioMain {
+  max-width: 100%;
+  margin: 3rem auto;
+  padding: 2rem;
+}
+
+.envioTitulo {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #667eea;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.envioLembrete {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #aaa;
+  font-size: 1rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.envioButton {
+  display: block;
+  margin: 0 auto 2rem auto;
+  background-color: #667eea;
+  color: white;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.envioButton:hover {
+  background-color: #556cd6;
+}
+
+.votacaoGrid {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  overflow-x: scroll;
+  scroll-behavior: smooth;
+  border: 1px solid #2a2a3e;
+  padding: 5px;
+}
+
+.votacaoLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 320px;
+  min-width: 220px;
+  background-color: #1c1c2e;
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.3s ease;
+}
+
+.votacaoLabel:hover {
+  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5);
+}
+
+.votacaoLabel img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  object-fit: contain;
+}
+
+.votacaoButton {
+  background-color: #667eea;
+  color: white;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+}
+
+.votacaoButton:hover {
+  background-color: #556cd6;
+}
+
+
+/* social links */
+
+.card {
+  background-color: #1c1c2e;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.card:hover {
+  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5);
+}
+
+.event-title {
+  font-size: 1.4rem;
+  color: #fff;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.social-links {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.button {
+  background-color: #292949;
+  color: #ffffff;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: 160px;
+  text-align: center;
+}
+
+.button:hover {
+  background-color: #3a3a5f;
+  transform: scale(1.05);
+}
+
+
+/* Galeria de Artes - Stylesheet */
+
+.galeria-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 200px);
+}
+
+.galeria-title {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #667eea;
+}
+
+.galeria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.galeria-empty {
+  text-align: center;
+  color: #aaa;
+  grid-column: 1 / -1;
+}
+
+.galeria-card {
+  background-color: #1a1a2e;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid #16213e;
+}
+
+.galeria-image {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.galeria-artist-name {
+  color: #667eea;
+}
+
+.galeria-level {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.galeria-challenge-badge {
+  background-color: #764ba2;
+  color: #fff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
+/* Desafios - CSS usando exatamente os mesmos estilos do styles original */
+
+.desafios-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 200px);
+}
+
+.desafios-title {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #667eea;
+}
+
+.desafios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.desafios-card {
+  background-color: #1a1a2e;
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid #16213e;
+}
+
+.desafios-highlight {
+  color: #ff6b6b;
+}
+
+.desafios-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  margin-top: 1rem;
+}
