@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Route, Routes, Link, useNavigate, useLocation 
 import "./App.css"
 import useGitHubData from "./configGit"
 import Admin from "./components/Admin"
-
+import VideoGallerySlider from "./components/VideosGalerrySlider"
+import Galeria from ".//components/Galeria"
 import Brushs from "./components/brushs"
 import Perfil from "./components/profile"
 import Regras from "./components/regras"
@@ -132,7 +133,7 @@ const ChallengeCard = ({ challenge, type, onParticipate }) => (
       <strong className="highlight">🏆 Prêmio: </strong>
       <span>{challenge.premio}</span>
     </div>
-    <button className="button" onClick={() => onParticipate && onParticipate(type)}>
+    <button className="button-btn" onClick={() => onParticipate && onParticipate(type)}>
       Participar do Desafio
     </button>
   </div>
@@ -191,33 +192,33 @@ const SocialLinks = ({ config }) => {
 }
 
 
-const Galeria = ({ artes }) => (
-  <div className="galeria-main">
-    <h2 className="galeria-title">🎨 Galeria de Artes</h2>
-    <div className="galeria-grid">
-      {artes.length === 0 ? (
-        <p className="galeria-empty">Nenhuma arte aprovada ainda. Volte mais tarde!</p>
-      ) : (
-        artes.map((arte, i) => (
-          <div key={i} className="galeria-card">
-            <img
-              src={URL.createObjectURL(arte.arquivo)}
-              alt={`Arte de ${arte.nome}`}
-              className="galeria-image"
-            />
-            <h4 className="galeria-artist-name">{arte.nome}</h4>
-            <p className="galeria-level">Nível: {arte.nivel}</p>
-            {arte.desafio && arte.desafio !== 'livre' && (
-              <span className="galeria-challenge-badge">
-                Desafio {arte.desafio}
-              </span>
-            )}
-          </div>
-        ))
-      )}
-    </div>
-  </div>
-);
+// const Galeria = ({ artes }) => (
+//   <div className="galeria-main">
+//     <h2 className="galeria-title">🎨 Galeria de Artes</h2>
+//     <div className="galeria-grid">
+//       {artes.length === 0 ? (
+//         <p className="galeria-empty">Nenhuma arte aprovada ainda. Volte mais tarde!</p>
+//       ) : (
+//         artes.map((arte, i) => (
+//           <div key={i} className="galeria-card">
+//             <img
+//               src={URL.createObjectURL(arte.arquivo)}
+//               alt={`Arte de ${arte.nome}`}
+//               className="galeria-image"
+//             />
+//             <h4 className="galeria-artist-name">{arte.nome}</h4>
+//             <p className="galeria-level">Nível: {arte.nivel}</p>
+//             {arte.desafio && arte.desafio !== 'livre' && (
+//               <span className="galeria-challenge-badge">
+//                 Desafio {arte.desafio}
+//               </span>
+//             )}
+//           </div>
+//         ))
+//       )}
+//     </div>
+//   </div>
+// );
 
 const Home = ({ config }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -235,6 +236,9 @@ const Home = ({ config }) => {
 
       <SearchBar onSearch={setSearchTerm} />
       <ArtGallerySlider />
+
+      <VideoGallerySlider config={config} />
+
       <ChallengeWinners />
 
       <div className="grid">

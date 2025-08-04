@@ -99,6 +99,16 @@ function BrushGallery() {
           />
         ))}
       </div>
+
+      <a href="https://ckilldy.github.io/ck-brushs-ibis/" target="_blank" style={{
+        position: "relative",
+        top: "13px",
+        color: "#ffffff",
+        backgroundColor: "#3030ff",
+        padding: "10px",
+        borderRadius: "10px",
+        textDecoration: "none"
+      }}>Ver todos Brushs</a>
     </div>
   )
 }
