@@ -10,6 +10,7 @@ import Perfil from "./components/profile"
 import Regras from "./components/regras"
 import Plus18 from "./components/plus18"
 import ConviteGrupo from "./components/ConviteGrupo"
+import { useGitHubArts } from "./hooks/useGithubArts";
 
 const Header = ({ config }) => {
   const location = useLocation();
@@ -121,8 +122,8 @@ const EventCard = ({ title, description, date, time, icon }) => (
   </div>
 );
 
-const ChallengeCard = ({ challenge, type, onParticipate }) => (
-  <div className="card challenge-gradient">
+const ChallengeCard = ({ challenge, type, onParticipate, disabled }) => (
+  <div className={`card challenge-gradient ${disabled ? 'challenge-disabled' : ''}`}>
     <div className="challenge-header">
       <h3 className="event-title">Desafio {type}</h3>
       <span className="challenge-badge">{type}</span>
@@ -133,9 +134,15 @@ const ChallengeCard = ({ challenge, type, onParticipate }) => (
       <strong className="highlight">🏆 Prêmio: </strong>
       <span>{challenge.premio}</span>
     </div>
-    <button className="button-btn" onClick={() => onParticipate && onParticipate(type)}>
-      Participar do Desafio
-    </button>
+    {disabled ? (
+      <button className="button-btn disabled" disabled>
+        Desafio Indisponível
+      </button>
+    ) : (
+      <button className="button-btn" onClick={() => onParticipate && onParticipate(type)}>
+        Participar do Desafio
+      </button>
+    )}
   </div>
 );
 
@@ -191,35 +198,6 @@ const SocialLinks = ({ config }) => {
   )
 }
 
-
-// const Galeria = ({ artes }) => (
-//   <div className="galeria-main">
-//     <h2 className="galeria-title">🎨 Galeria de Artes</h2>
-//     <div className="galeria-grid">
-//       {artes.length === 0 ? (
-//         <p className="galeria-empty">Nenhuma arte aprovada ainda. Volte mais tarde!</p>
-//       ) : (
-//         artes.map((arte, i) => (
-//           <div key={i} className="galeria-card">
-//             <img
-//               src={URL.createObjectURL(arte.arquivo)}
-//               alt={`Arte de ${arte.nome}`}
-//               className="galeria-image"
-//             />
-//             <h4 className="galeria-artist-name">{arte.nome}</h4>
-//             <p className="galeria-level">Nível: {arte.nivel}</p>
-//             {arte.desafio && arte.desafio !== 'livre' && (
-//               <span className="galeria-challenge-badge">
-//                 Desafio {arte.desafio}
-//               </span>
-//             )}
-//           </div>
-//         ))
-//       )}
-//     </div>
-//   </div>
-// );
-
 const Home = ({ config }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -255,6 +233,7 @@ const Home = ({ config }) => {
   );
 };
 
+
 const Desafios = ({ config }) => {
   const navigate = useNavigate();
 
@@ -262,18 +241,41 @@ const Desafios = ({ config }) => {
     navigate('/envio', { state: { desafioType: type } });
   };
 
+  // função para renderizar apenas se ativo
+  const renderChallenge = (challenge, type) => {
+    if (!challenge) return null; // se não existe
+    if (!challenge.ativo) {
+      return (
+        <ChallengeCard
+          challenge={challenge}
+          type={type}
+          disabled // passa flag para mostrar desativado
+        />
+      );
+    }
+    return (
+      <ChallengeCard
+        challenge={challenge}
+        type={type}
+        onParticipate={handleParticipate}
+      />
+    );
+  };
+
   return (
     <div className="desafios-main">
       <h2 className="desafios-title">🏆 Desafios Atuais</h2>
       <div className="desafios-grid">
-        <ChallengeCard challenge={config.desafios.diario} type="Diário" onParticipate={handleParticipate} />
-        <ChallengeCard challenge={config.desafios.semanal} type="Semanal" onParticipate={handleParticipate} />
-        <ChallengeCard challenge={config.desafios.mensal} type="Mensal" onParticipate={handleParticipate} />
+        {renderChallenge(config.desafios.diario, "Diário")}
+        {renderChallenge(config.desafios.semanal, "Semanal")}
+        {renderChallenge(config.desafios.mensal, "Mensal")}
       </div>
       <div className="desafios-info-card">
         <h3 className="desafios-highlight">🤔 Como Funciona?</h3>
         <p>
-          Participe dos nossos desafios de arte! Basta clicar em "Participar do Desafio", enviar sua arte dentro do prazo e concorrer a prêmios incríveis. Os desafios são uma ótima forma de se motivar e testar suas habilidades!
+          Participe dos nossos desafios de arte! Basta clicar em "Participar do Desafio",
+          enviar sua arte dentro do prazo e concorrer a prêmios incríveis.
+          Os desafios são uma ótima forma de se motivar e testar suas habilidades!
         </p>
         <Link to="/regras" className="desafios-button-link">
           Ver regras dos desafios
@@ -503,7 +505,6 @@ const Votacao = ({ artesAprovadas, votacaoAtiva }) => {
   );
 };
 
-
 const Carregando = () => (
   <div className="loading-container">
     <p>🔄 Carregando dados da comunidade...</p>
@@ -517,17 +518,18 @@ const Erro = ({ mensagem }) => (
   </div>
 );
 
+
 const App = () => {
   const [envios, setEnvios] = useState([]);
   const [aprovados, setAprovados] = useState([]);
   const [envioAtivo, setEnvioAtivo] = useState(true);
   const [votacaoAtiva, setVotacaoAtiva] = useState(true);
-  const { config, loading, error } = useGitHubData();
 
-  if (loading) return <Carregando />;
-  if (error || !config) return <Erro mensagem={error} />;
+  const { artes, loading } = useGitHubArts();
+  const { config, loading: configLoading, error } = useGitHubData();
 
-
+  if (loading || configLoading) return <Carregando />;
+  if (error) return <Erro mensagem={error} />;
 
   return (
     <div className="app">
@@ -536,7 +538,8 @@ const App = () => {
         <div className="main">
           <Routes>
             <Route path="/" element={<Home config={config} />} />
-            <Route path="/galeria" element={<Galeria artes={aprovados} />} />
+            <Route path="/galeria" element={<Galeria artes={artes
+            } />} />
             <Route path="/desafios" element={<Desafios config={config} />} />
             <Route path="/envio" element={
               <Envio

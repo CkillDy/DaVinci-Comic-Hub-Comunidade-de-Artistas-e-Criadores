@@ -2171,7 +2171,6 @@ PARTICIPAR DO GRUPO
 
 /* videos */
 
-
 .video-gallery-slider {
   margin: 2rem 0;
   padding: 1.5rem;
@@ -2191,6 +2190,8 @@ PARTICIPAR DO GRUPO
 
 .video-container {
   display: flex;
+  align-items: center;
+  justify-content: center;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
@@ -2215,7 +2216,7 @@ PARTICIPAR DO GRUPO
 
 .video-main {
   flex: 1;
-  max-width: 300px;
+  max-width: 350px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2224,7 +2225,7 @@ PARTICIPAR DO GRUPO
 .video-thumbnail {
   position: relative;
   width: 100%;
-  max-width: 250px;
+  max-width: 315px;
   aspect-ratio: 9/16;
   border-radius: 12px;
   overflow: hidden;
@@ -3312,4 +3313,14 @@ PARTICIPAR DO GRUPO
   .challenge-count {
     font-size: 1.5rem;
   }
+}
+
+.challenge-disabled {
+  opacity: 0.5;
+  filter: grayscale(80%);
+}
+
+.challenge-button.disabled {
+  background: #555;
+  cursor: not-allowed;
 }
