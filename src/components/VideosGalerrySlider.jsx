@@ -221,7 +221,7 @@ const VideoGallerySlider = () => {
             <p>Data: {video.data}</p>
             <p>
               <a href={video.originalUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'none' }}>
-                Ver no YouTube 🔗
+                Ver no Drive 🔗
               </a>
             </p>
           </div>
@@ -243,7 +243,7 @@ const VideoGallerySlider = () => {
         ))}
       </div>
 
-      <button onClick={refreshData} style={{ marginTop: '20px' }}>🔄 Atualizar Dados</button>
+      <button className='refresh-btn' onClick={refreshData} style={{ marginTop: '20px' }}>🔄 Atualizar Dados</button>
     </div>
   );
 };

@@ -60,40 +60,125 @@ const SearchBar = ({ onSearch, config }) => (
   </div>
 );
 
-const arts = [
-  { src: "/imgs/art1.jpg", autor: "Lucca" },
-  { src: "/imgs/art2.jpg", autor: "Mariana" },
-  { src: "/imgs/art3.jpg", autor: "Guimar" },
-];
-
-const ArtGallerySlider = () => {
+const ArtGallerySlider = ({ artesGalery }) => {
   const [index, setIndex] = useState(0);
+  const [hover, setHover] = useState(false);
 
   useEffect(() => {
+    if (!artesGalery || artesGalery.length === 0) return;
     const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % arts.length);
-    }, 4000);
+      if (!hover) setIndex(prev => (prev + 1) % artesGalery.length);
+    }, 2000); // muda a cada 4s
     return () => clearInterval(interval);
-  }, []);
+  }, [artesGalery, hover]);
+
+  if (!artesGalery || artesGalery.length === 0) {
+    return <div>Nenhuma arte disponível no momento.</div>;
+  }
+
+  const currentArt = artesGalery[index];
+  const imageUrl = currentArt.url || currentArt.imagem || currentArt.link || '';
+  const autor = currentArt.autor || currentArt.editor || 'Autor Desconhecido';
+  const nome = currentArt.nome || currentArt.titulo || '';
+
+  const nextSlide = () => setIndex((index + 1) % artesGalery.length);
+  const prevSlide = () => setIndex((index - 1 + artesGalery.length) % artesGalery.length);
 
   return (
-    <div className="slider-container">
+    <div
+      className="slider-container"
+      style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: '900px',
+        margin: '40px auto',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        boxShadow: '0 8px 20px rgba(0,0,0,0.4)',
+        backgroundColor: '#000'
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      {/* Imagem do slide */}
       <img
-        src={arts[index].src}
-        alt={`Arte enviada por ${arts[index].autor}`}
-        className="slider-image"
+        src={imageUrl}
+        alt={`Arte de ${nome}`}
+        style={{
+          width: '100%',
+          height: "100%",
+          maxHeight: '300px',
+          objectFit: 'fill',
+          transition: 'opacity 1s ease-in-out',
+          display: 'block'
+        }}
       />
-      <div className="slider-caption">
-        Arte enviada por <strong className="highlight">{arts[index].autor}</strong>
+
+      {/* Legenda */}
+      <div style={{
+        position: 'absolute',
+        bottom: '0',
+        left: '0',
+        right: '0',
+        background: 'rgba(0,0,0,0.6)',
+        color: '#fff',
+        padding: '12px 20px',
+        fontSize: '16px',
+        fontWeight: '500',
+        textAlign: 'center'
+      }}>
+        {nome} — <strong>{autor}</strong>
       </div>
+
+      {/* Botões de navegação */}
+      <button
+        onClick={prevSlide}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '10px',
+          transform: 'translateY(-50%)',
+          background: 'rgba(0,0,0,0.5)',
+          border: 'none',
+          color: '#fff',
+          fontSize: '32px',
+          borderRadius: '50%',
+          width: '50px',
+          height: '50px',
+          cursor: 'pointer',
+          zIndex: 2
+        }}
+        aria-label="Slide anterior"
+      >‹</button>
+
+      <button
+        onClick={nextSlide}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          right: '10px',
+          transform: 'translateY(-50%)',
+          background: 'rgba(0,0,0,0.5)',
+          border: 'none',
+          color: '#fff',
+          fontSize: '32px',
+          borderRadius: '50%',
+          width: '50px',
+          height: '50px',
+          cursor: 'pointer',
+          zIndex: 2
+        }}
+        aria-label="Próximo slide"
+      >›</button>
     </div>
   );
 };
 
+
 const destaques = [
   { titulo: "Vencedor Diário", autor: "Ks", arte: "/imgs/dia.jpg" },
   { titulo: "Destaque Semanal", autor: "Jinx", arte: "/imgs/semana.jpg" },
-  { titulo: "Melhor OC do Mês", autor: "Ck", arte: "/imgs/oc.jpg" }
+  { titulo: "Melhor OC do Mês", autor: "Luiz", arte: "/imgs/oc.jpg" }
 ];
 
 const ChallengeWinners = () => (
@@ -198,7 +283,7 @@ const SocialLinks = ({ config }) => {
   )
 }
 
-const Home = ({ config }) => {
+const Home = ({ config, artesHome }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
@@ -213,7 +298,7 @@ const Home = ({ config }) => {
       </div>
 
       <SearchBar onSearch={setSearchTerm} />
-      <ArtGallerySlider />
+      <ArtGallerySlider artesGalery={artesHome} />
 
       <VideoGallerySlider config={config} />
 
@@ -537,7 +622,7 @@ const App = () => {
         <Header config={config} />
         <div className="main">
           <Routes>
-            <Route path="/" element={<Home config={config} />} />
+            <Route path="/" element={<Home config={config} artesHome={artes} />} />
             <Route path="/galeria" element={<Galeria artes={artes
             } />} />
             <Route path="/desafios" element={<Desafios config={config} />} />
