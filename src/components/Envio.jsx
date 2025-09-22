@@ -3,29 +3,40 @@ import { useLocation } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 import imageCompression from "browser-image-compression";
 
+// ==========================
+// Configuração do Supabase
+// ==========================
 const SUPABASE_URL = "https://ajtdyjlzwpzqfqhkbrzj.supabase.co";
-const SUPABASE_ANON_KEY = "..."; // sua chave
+const SUPABASE_ANON_KEY = "..."; // sua chave anon
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ==========================
+// Função de Upload
+// ==========================
 const uploadArquivo = async (file) => {
   if (!file) return null;
   const fileName = `uploads/${Date.now()}_${file.name}`;
+
   try {
+    // Upload no bucket 'desenhos'
     const { error } = await supabase.storage
       .from("desenhos")
       .upload(fileName, file);
+
     if (error) return null;
-    const { data: publicData } = supabase.storage
-      .from("desenhos")
-      .getPublicUrl(fileName);
-    return publicData.publicUrl;
+
+    // Link público
+    return `${SUPABASE_URL}/storage/v1/object/public/desenhos/${fileName}`;
   } catch (err) {
     console.error(err);
     return null;
   }
 };
 
+// ==========================
+// Componente Envio
+// ==========================
 const Envio = ({ envioAtivo, onNovoEnvio }) => {
   const location = useLocation();
   const desafioTypeFromState = location.state?.desafioType || "livre";
@@ -46,7 +57,7 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
   const [tempoRestante, setTempoRestante] = useState(0);
 
   // ==========================
-  // Checa bloqueio e atualiza tempo
+  // Bloqueio de 24h
   // ==========================
   useEffect(() => {
     const atualizarTempo = () => {
@@ -70,20 +81,29 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
     };
 
     atualizarTempo();
-    const interval = setInterval(atualizarTempo, 1000); // atualiza a cada segundo
+    const interval = setInterval(atualizarTempo, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
+  // ==========================
+  // Atualiza desafio
+  // ==========================
   useEffect(() => {
     setForm((prev) => ({ ...prev, desafio: desafioTypeFromState }));
   }, [desafioTypeFromState]);
 
+  // ==========================
+  // Handle inputs
+  // ==========================
   const handle = (e) => {
     const { name, value, files } = e.target;
     setForm({ ...form, [name]: name === "arquivo" ? files[0] : value });
   };
 
+  // ==========================
+  // Submissão do formulário
+  // ==========================
   const submit = async (e) => {
     e.preventDefault();
     if (!envioAtivo) {
@@ -101,6 +121,7 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
       setSucesso(false);
       setStatusMessage("🚀 Preparando o envio...");
 
+      // Compressão
       const options = {
         maxSizeMB: 1,
         maxWidthOrHeight: 1920,
@@ -110,6 +131,7 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
       };
       const compressedFile = await imageCompression(form.arquivo, options);
 
+      // Upload
       setStatusMessage("📤 Enviando arquivo...");
       const arquivoUrl = await uploadArquivo(compressedFile);
       if (!arquivoUrl) {
@@ -118,6 +140,7 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
         return;
       }
 
+      // Inserir dados no banco
       setStatusMessage("💾 Salvando informações no banco...");
       const { error } = await supabase.from("envios").insert([
         {
@@ -141,10 +164,11 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
       setLoading(false);
       setSucesso(true);
 
-      // Bloqueio de 24h
+      // Bloqueio 24h
       localStorage.setItem("ultimoEnvio", new Date().getTime());
       setPodeEnviar(false);
 
+      // Reset
       setForm({
         nome: "",
         whatsapp: "",
@@ -162,6 +186,9 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
     }
   };
 
+  // ==========================
+  // Render
+  // ==========================
   if (!envioAtivo) {
     return (
       <div className="envio-main">
@@ -195,10 +222,7 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
       )}
 
       <form onSubmit={submit} className="envio-card">
-        <fieldset
-          disabled={!podeEnviar || loading}
-          style={{ border: "none", padding: 0 }}
-        >
+        <fieldset disabled={!podeEnviar || loading} style={{ border: "none", padding: 0 }}>
           <input
             className="envio-input"
             name="nome"
@@ -247,11 +271,7 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
           />
         </fieldset>
 
-        <button
-          type="submit"
-          className="envio-button"
-          disabled={loading || !podeEnviar}
-        >
+        <button type="submit" className="envio-button" disabled={loading || !podeEnviar}>
           {loading ? "⏳ Processando envio..." : "📤 Enviar Arte"}
         </button>
 
