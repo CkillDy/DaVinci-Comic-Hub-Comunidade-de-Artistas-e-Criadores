@@ -1,5 +1,5 @@
 /* Importação de fontes */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
 
 * {
   padding: 0;
@@ -21,7 +21,7 @@ html {
 /* Estilos Globais */
 body {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   background-color: #0d0d1b;
   color: #e0e0e0;
   line-height: 1.6;
@@ -233,7 +233,7 @@ textarea {
   margin: 2rem auto;
   padding: 0 1rem;
   color: #e0e0e0;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .envio-titulo {
@@ -335,6 +335,56 @@ textarea {
   margin-bottom: 1rem;
 }
 
+.envio-status-wrapper {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.envio-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.envio-success {
+  background: #d4edda;
+  color: #155724;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  display: inline-block;
+  margin-top: 10px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* Desafios - CSS usando exatamente os mesmos estilos do styles original */
 
@@ -502,7 +552,11 @@ textarea {
   margin: 1rem 0;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   border: 2px solid #ff6b6b;
-  background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(26, 26, 46, 1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 107, 107, 0.1) 0%,
+    rgba(26, 26, 46, 1) 100%
+  );
 }
 
 .regras-warning-title {
@@ -745,7 +799,6 @@ textarea {
   }
 }
 
-
 /* Perfil - CSS com Hero Section e melhorias visuais */
 
 .perfil-main {
@@ -771,15 +824,22 @@ textarea {
 
 /* Padrão artístico sobreposto para dar textura */
 .perfil-hero::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background:
-    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+  background: radial-gradient(
+      circle at 25% 25%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 75% 75%,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 50%
+    ),
     linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%),
     linear-gradient(-45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%);
   background-size: 100px 100px, 150px 150px, 20px 20px, 20px 20px;
@@ -787,7 +847,6 @@ textarea {
 }
 
 @keyframes backgroundShift {
-
   0%,
   100% {
     transform: translateX(0) translateY(0);
@@ -852,7 +911,7 @@ textarea {
 }
 
 .perfil-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -863,7 +922,6 @@ textarea {
 }
 
 @keyframes shimmer {
-
   0%,
   100% {
     opacity: 0.5;
@@ -999,13 +1057,17 @@ textarea {
 }
 
 .perfil-focus-item::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(102, 126, 234, 0.1) 0%,
+    transparent 70%
+  );
   transform: scale(0);
   transition: transform 0.5s ease;
 }
@@ -1049,7 +1111,11 @@ textarea {
 }
 
 .perfil-stat-item {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.1) 0%,
+    rgba(118, 75, 162, 0.1) 100%
+  );
   border-radius: 15px;
   padding: 2rem 1rem;
   text-align: center;
@@ -1095,13 +1161,18 @@ textarea {
 }
 
 .perfil-cta-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
   animation: slideShine 3s infinite;
 }
 
@@ -1207,7 +1278,6 @@ textarea {
   }
 }
 
-
 /* plus18CSS */
 
 .plus18-main {
@@ -1273,8 +1343,6 @@ textarea {
     transform: translateY(0);
   }
 }
-
-
 
 /* 
 PARTICIPAR DO GRUPO 
@@ -1360,9 +1428,6 @@ PARTICIPAR DO GRUPO
     transform: translateY(0);
   }
 }
-
-
-
 
 /* VOTACAO */
 
@@ -1546,7 +1611,7 @@ PARTICIPAR DO GRUPO
   max-width: 1200px;
   margin: 2rem auto 4rem;
   padding: 0 1rem;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   color: #e0e0e0;
 }
 
@@ -1627,7 +1692,6 @@ PARTICIPAR DO GRUPO
 .search-bar .button:hover {
   background-color: #5563c1;
 }
-
 
 .input {
   flex: 1;
@@ -1797,7 +1861,6 @@ PARTICIPAR DO GRUPO
 }
 
 /* BRUSHS */
-
 
 /* BrushGallery */
 
@@ -2133,7 +2196,11 @@ PARTICIPAR DO GRUPO
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+  background: linear-gradient(
+    45deg,
+    rgba(102, 126, 234, 0.9),
+    rgba(118, 75, 162, 0.9)
+  );
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2442,7 +2509,7 @@ PARTICIPAR DO GRUPO
 }
 
 .video-gallery-slider::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -2468,7 +2535,7 @@ PARTICIPAR DO GRUPO
   margin-bottom: 2rem;
   font-size: 2rem;
   font-weight: 700;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   background: linear-gradient(45deg, #667eea, #764ba2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -2574,9 +2641,11 @@ PARTICIPAR DO GRUPO
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg,
-      rgba(0, 0, 0, 0.3),
-      rgba(102, 126, 234, 0.2));
+  background: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.3),
+    rgba(102, 126, 234, 0.2)
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2607,7 +2676,6 @@ PARTICIPAR DO GRUPO
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -2648,7 +2716,7 @@ PARTICIPAR DO GRUPO
   margin-bottom: 1rem;
   color: #667eea;
   font-weight: 700;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   line-height: 1.3;
 }
 
@@ -2656,7 +2724,7 @@ PARTICIPAR DO GRUPO
   font-size: 0.95rem;
   color: #94a3b8;
   margin: 0.5rem 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-weight: 500;
 }
 
@@ -2712,7 +2780,7 @@ PARTICIPAR DO GRUPO
 }
 
 .dot.active::after {
-  content: '';
+  content: "";
   position: absolute;
   top: -3px;
   left: -3px;
@@ -2743,7 +2811,7 @@ PARTICIPAR DO GRUPO
   padding: 0.75rem 1.5rem;
   border-radius: 25px;
   cursor: pointer;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-weight: 600;
   font-size: 0.95rem;
   transition: all 0.3s ease;
@@ -3859,7 +3927,6 @@ PARTICIPAR DO GRUPO
 }
 
 @media (max-width: 480px) {
-
   .controls-panel,
   .tabs-container,
   .stats-section,
