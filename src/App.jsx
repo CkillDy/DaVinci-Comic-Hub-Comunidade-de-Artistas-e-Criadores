@@ -19,6 +19,7 @@ import Plus18 from "./components/plus18";
 import ConviteGrupo from "./components/ConviteGrupo";
 import { useGitHubArts } from "./hooks/useGithubArts";
 import Envio from "./components/Envio";
+import Votacao from "./components/Votacao";
 
 const Header = ({ config }) => {
   const location = useLocation();
@@ -442,128 +443,6 @@ const Desafios = ({ config }) => {
           Ver regras dos desafios
         </Link>
       </div>
-    </div>
-  );
-};
-
-const Votacao = ({ artesAprovadas, votacaoAtiva }) => {
-  const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
-  const [votos, setVotos] = useState({});
-  const [msg, setMsg] = useState("");
-
-  const votar = (nivel, id) => setVotos((v) => ({ ...v, [nivel]: id }));
-
-  const enviar = (e) => {
-    e.preventDefault();
-    if (!nome || !email || Object.keys(votos).length === 0) {
-      return setMsg(
-        "❌ Preencha todos os campos e vote em pelo menos uma categoria."
-      );
-    }
-    console.log("Voto registrado:", { nome, email, votos });
-    setMsg("✅ Voto registrado com sucesso! Obrigado por participar.");
-    setTimeout(() => setMsg(""), 3000);
-  };
-
-  if (!votacaoAtiva) {
-    return (
-      <div className="votacao-main main">
-        <div className="votacao-card">
-          <h2 className="votacao-titulo encerrada">🗳️ Votação Encerrada</h2>
-          <p>A votação atual foi encerrada pelo administrador.</p>
-          <p>Aguarde o próximo período de votação!</p>
-        </div>
-      </div>
-    );
-  }
-
-  const niveis = ["Iniciante", "Intermediário", "Avançado"];
-
-  return (
-    <div className="votacao-main main">
-      <h2 className="votacao-titulo">🗳️ Votação</h2>
-
-      <form onSubmit={enviar}>
-        <div className="votacao-card">
-          <h3 className="votacao-subtitulo">👤 Seus Dados</h3>
-          <input
-            className="votacao-input"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            placeholder="Seu nome"
-            required
-          />
-          <input
-            className="votacao-input"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Seu email"
-            required
-          />
-        </div>
-
-        {niveis.map((nivel) => {
-          const artesDoNivel = artesAprovadas.filter((a) => a.nivel === nivel);
-          if (artesDoNivel.length === 0) return null;
-
-          return (
-            <div key={nivel} className="votacao-card">
-              <h3 className="votacao-subtitulo">🏆 Categoria: {nivel}</h3>
-              <div className="votacao-grid">
-                {artesDoNivel.map((arte) => (
-                  <label
-                    key={arte.nome}
-                    className={`votacao-label ${
-                      votos[nivel] === arte.nome ? "ativo" : ""
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={nivel}
-                      value={arte.nome}
-                      onChange={() => votar(nivel, arte.nome)}
-                      hidden
-                      required
-                    />
-                    <div className="votacao-arte-wrapper">
-                      <img
-                        src={URL.createObjectURL(arte.arquivo)}
-                        alt={arte.nome}
-                      />
-                      <strong className="votacao-nome">{arte.nome}</strong>
-                      {arte.desafio && arte.desafio !== "livre" && (
-                        <div className="votacao-desafio">
-                          Desafio: {arte.desafio}
-                        </div>
-                      )}
-                      {votos[nivel] === arte.nome && (
-                        <span className="votacao-check">✅</span>
-                      )}
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-
-        <div className="votacao-card">
-          <button type="submit" className="votacao-button">
-            🗳️ Confirmar Voto
-          </button>
-          {msg && (
-            <div
-              className={`votacao-msg ${
-                msg.includes("✅") ? "sucesso" : "erro"
-              }`}
-            >
-              {msg}
-            </div>
-          )}
-        </div>
-      </form>
     </div>
   );
 };

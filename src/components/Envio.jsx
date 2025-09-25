@@ -1,43 +1,59 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { createClient } from "@supabase/supabase-js";
 import imageCompression from "browser-image-compression";
+import { uploadArquivo, criarEnvio } from "../hooks/superbase";
 
-// ==========================
-// Configuração do Supabase
-// ==========================
-const SUPABASE_URL = "https://ajtdyjlzwpzqfqhkbrzj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdGR5amx6d3B6cWZxaGticnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1MDYzNDIsImV4cCI6MjA3NDA4MjM0Mn0.g0hxkZrZ5jiEMsIK1RU0QVuI4LWgXZD56HWrcyNcslk";
+// Componente de Loading
+const CarregandoEnvio = ({ mensagem, progresso = null }) => (
+  <div className="envio-loading">
+    <div className="loading-spinner">
+      <div className="spinner"></div>
+    </div>
+    <div className="loading-content">
+      <span className="loading-message">{mensagem}</span>
+      {progresso !== null && (
+        <div className="progress-container">
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{ width: `${progresso}%` }}
+            ></div>
+          </div>
+          <span className="progress-text">{progresso.toFixed(0)}%</span>
+        </div>
+      )}
+    </div>
+  </div>
+);
 
+// Componente de Erro
+const ErroEnvio = ({ mensagem, onTentarNovamente }) => (
+  <div className="envio-error">
+    <div className="error-icon">❌</div>
+    <h3>Ops! Algo deu errado</h3>
+    <p>{mensagem}</p>
+    {onTentarNovamente && (
+      <button className="envio-button-secondary" onClick={onTentarNovamente}>
+        🔄 Tentar Novamente
+      </button>
+    )}
+  </div>
+);
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Componente de Sucesso
+const SucessoEnvio = ({ mensagem }) => (
+  <div className="envio-success-full">
+    <div className="success-animation">
+      <div className="checkmark">✓</div>
+    </div>
+    <h3>Arte Enviada com Sucesso! 🎉</h3>
+    <p>{mensagem}</p>
+    <p className="success-note">
+      Sua arte será analisada e, se aprovada, aparecerá na galeria em breve!
+    </p>
+  </div>
+);
 
-// ==========================
-// Função de Upload
-// ==========================
-const uploadArquivo = async (file) => {
-  if (!file) return null;
-  const fileName = `uploads/${Date.now()}_${file.name}`;
-
-  try {
-    // Upload no bucket 'desenhos'
-    const { error } = await supabase.storage
-      .from("desenhos")
-      .upload(fileName, file);
-
-    if (error) return null;
-
-    // Link público
-    return `${SUPABASE_URL}/storage/v1/object/public/desenhos/${fileName}`;
-  } catch (err) {
-    console.error(err);
-    return null;
-  }
-};
-
-// ==========================
-// Componente Envio
-// ==========================
 const Envio = ({ envioAtivo, onNovoEnvio }) => {
   const location = useLocation();
   const desafioTypeFromState = location.state?.desafioType || "livre";
@@ -52,14 +68,27 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
 
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const [progresso, setProgresso] = useState(null);
   const [sucesso, setSucesso] = useState(false);
+  const [erro, setErro] = useState(null);
 
   const [podeEnviar, setPodeEnviar] = useState(true);
   const [tempoRestante, setTempoRestante] = useState(0);
 
-  // ==========================
-  // Bloqueio de 24h
-  // ==========================
+  // Função para formatar tempo restante
+  const formatarTempoRestante = (milissegundos) => {
+    const horas = Math.floor(milissegundos / (1000 * 60 * 60));
+    const minutos = Math.floor(
+      (milissegundos % (1000 * 60 * 60)) / (1000 * 60)
+    );
+
+    if (horas > 0) {
+      return `${horas}h ${minutos}min`;
+    }
+    return `${minutos} minutos`;
+  };
+
+  // Checa bloqueio e atualiza tempo
   useEffect(() => {
     const atualizarTempo = () => {
       const ultimoEnvio = localStorage.getItem("ultimoEnvio");
@@ -87,89 +116,95 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // ==========================
-  // Atualiza desafio
-  // ==========================
   useEffect(() => {
     setForm((prev) => ({ ...prev, desafio: desafioTypeFromState }));
   }, [desafioTypeFromState]);
 
-  // ==========================
-  // Handle inputs
-  // ==========================
   const handle = (e) => {
     const { name, value, files } = e.target;
     setForm({ ...form, [name]: name === "arquivo" ? files[0] : value });
+
+    // Limpa mensagens de erro quando usuário interage
+    if (erro) {
+      setErro(null);
+    }
   };
 
-  // ==========================
-  // Submissão do formulário
-  // ==========================
+  const tentarNovamente = () => {
+    setErro(null);
+    setSucesso(false);
+    setProgresso(null);
+    setStatusMessage("");
+  };
+
   const submit = async (e) => {
     e.preventDefault();
+
     if (!envioAtivo) {
-      setStatusMessage("⚠️ O envio de artes está temporariamente desativado.");
+      setErro("O envio de artes está temporariamente desativado.");
       return;
     }
+
     if (!form.arquivo) {
-      setStatusMessage("⚠️ Selecione um arquivo antes de enviar.");
+      setErro("Por favor, selecione um arquivo antes de enviar.");
       return;
     }
+
     if (!podeEnviar) return;
 
     try {
       setLoading(true);
       setSucesso(false);
-      setStatusMessage("🚀 Preparando o envio...");
+      setErro(null);
+      setProgresso(null);
 
-      // Compressão
+      // Etapa 1: Preparação
+      setStatusMessage("🚀 Preparando o envio...");
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Etapa 2: Compressão
+      setStatusMessage("⚙️ Compactando imagem...");
       const options = {
         maxSizeMB: 1,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
-        onProgress: (percent) =>
-          setStatusMessage(`⚙️ Compactando imagem... ${percent.toFixed(0)}%`),
+        onProgress: (percent) => {
+          setProgresso(percent);
+          setStatusMessage(`⚙️ Compactando imagem...`);
+        },
       };
-      const compressedFile = await imageCompression(form.arquivo, options);
 
-      // Upload
+      const compressedFile = await imageCompression(form.arquivo, options);
+      setProgresso(null);
+
+      // Etapa 3: Upload (usando função otimizada)
       setStatusMessage("📤 Enviando arquivo...");
       const arquivoUrl = await uploadArquivo(compressedFile);
+
       if (!arquivoUrl) {
-        setStatusMessage("❌ Erro ao enviar o arquivo.");
-        setLoading(false);
-        return;
+        throw new Error("Falha ao enviar o arquivo para o servidor.");
       }
 
-      // Inserir dados no banco
-      setStatusMessage("💾 Salvando informações no banco...");
-      const { error } = await supabase.from("envios").insert([
-        {
-          nome: form.nome,
-          whatsapp: form.whatsapp,
-          nivel: form.nivel,
-          desafio: form.desafio,
-          arquivo_url: arquivoUrl,
-        },
-      ]);
+      // Etapa 4: Salvando no banco (usando função otimizada)
+      setStatusMessage("💾 Salvando informações...");
+      await criarEnvio({
+        nome: form.nome,
+        whatsapp: form.whatsapp,
+        nivel: form.nivel,
+        desafio: form.desafio,
+        arquivo_url: arquivoUrl,
+      });
 
-      if (error) {
-        setStatusMessage(
-          `❌ Erro ao salvar no banco: ${error.message || "Desconhecido"}`
-        );
-        setLoading(false);
-        return;
-      }
-
-      setStatusMessage("🎉 Arte enviada com sucesso!");
+      // Sucesso!
+      setStatusMessage("Arte enviada com sucesso! 🎉");
       setLoading(false);
       setSucesso(true);
 
-      // Bloqueio 24h
+      // Bloqueio de 24h
       localStorage.setItem("ultimoEnvio", new Date().getTime());
       setPodeEnviar(false);
 
-      // Reset
+      // Limpa formulário
       setForm({
         nome: "",
         whatsapp: "",
@@ -178,27 +213,53 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
         arquivo: null,
       });
 
+      // Callback para notificar componente pai
       onNovoEnvio?.();
     } catch (err) {
-      setStatusMessage(
-        `❌ Erro ao processar a imagem: ${err.message || "Desconhecido"}`
-      );
+      setErro(err.message || "Erro inesperado ao processar o envio.");
       setLoading(false);
+      setProgresso(null);
     }
   };
 
-  // ==========================
-  // Render
-  // ==========================
   if (!envioAtivo) {
     return (
       <div className="envio-main">
-        <div className="envio-card">
-          <h2 style={{ color: "#ff6b6b" }}>❌ Envio de Artes Desativado</h2>
+        <div className="envio-card envio-disabled">
+          <div className="disabled-icon">🚧</div>
+          <h2>Envio Temporariamente Desativado</h2>
           <p>
-            O envio de novas artes foi desativado temporariamente. Volte mais
-            tarde.
+            O envio de novas artes foi desativado temporariamente para
+            manutenção. Volte mais tarde ou acompanhe nossos canais para
+            atualizações.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se está carregando, mostra apenas o loading
+  if (loading) {
+    return (
+      <div className="envio-main">
+        <h1 className="envio-titulo">📤 Enviar Arte</h1>
+        <div className="envio-card">
+          <CarregandoEnvio mensagem={statusMessage} progresso={progresso} />
+        </div>
+      </div>
+    );
+  }
+
+  // Se teve sucesso, mostra apenas a mensagem de sucesso
+  if (sucesso) {
+    return (
+      <div className="envio-main">
+        <h1 className="envio-titulo">📤 Enviar Arte</h1>
+        <div className="envio-card">
+          <SucessoEnvio mensagem={statusMessage} />
+          <button className="envio-button" onClick={() => setSucesso(false)}>
+            ✨ Enviar Outra Arte
+          </button>
         </div>
       </div>
     );
@@ -216,14 +277,25 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
       )}
 
       {!podeEnviar && (
-        <div className="envio-card envio-alerta">
-          ⏳ Você já enviou hoje! Tente novamente em{" "}
-          {Math.ceil(tempoRestante / (1000 * 60 * 60))} horas.
+        <div className="envio-card envio-cooldown">
+          <div className="cooldown-icon">⏳</div>
+          <h3>Aguarde para Enviar Novamente</h3>
+          <p>
+            Você já enviou uma arte hoje! Poderá enviar novamente em{" "}
+            <strong>{formatarTempoRestante(tempoRestante)}</strong>
+          </p>
         </div>
       )}
 
       <form onSubmit={submit} className="envio-card">
-        <fieldset disabled={!podeEnviar || loading} style={{ border: "none", padding: 0 }}>
+        {erro && (
+          <ErroEnvio mensagem={erro} onTentarNovamente={tentarNovamente} />
+        )}
+
+        <fieldset
+          disabled={!podeEnviar || loading}
+          style={{ border: "none", padding: 0 }}
+        >
           <input
             className="envio-input"
             name="nome"
@@ -272,27 +344,16 @@ const Envio = ({ envioAtivo, onNovoEnvio }) => {
           />
         </fieldset>
 
-        <button type="submit" className="envio-button" disabled={loading || !podeEnviar}>
-          {loading ? "⏳ Processando envio..." : "📤 Enviar Arte"}
+        <button
+          type="submit"
+          className="envio-button"
+          disabled={loading || !podeEnviar}
+        >
+          {!podeEnviar ? "⏳ Aguarde para enviar novamente" : "📤 Enviar Arte"}
         </button>
-
-        <div className="envio-status-wrapper">
-          {loading && (
-            <div className="envio-loading">
-              <div className="spinner"></div>
-              <span>{statusMessage}</span>
-            </div>
-          )}
-          {!loading && sucesso && (
-            <div className="envio-success">
-              <span>🎉 {statusMessage}</span>
-            </div>
-          )}
-        </div>
       </form>
     </div>
   );
 };
 
 export default Envio;
-
