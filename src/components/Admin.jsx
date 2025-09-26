@@ -1,7 +1,364 @@
 import React, { useState, useEffect } from "react";
-import { Eye, Trash2, RefreshCw, BarChart3 } from "lucide-react";
-import { buscarTodosEnvios, removerEnvio } from "../hooks/superbase";
+import { Eye, Trash2, RefreshCw, BarChart3, Trophy } from "lucide-react";
+import { buscarTodosEnvios, removerEnvio, supabase } from "../hooks/superbase";
 
+// SUBSTITUA esta função no arquivo Admin.jsx (por volta da linha 10-100)
+
+// FUNÇÃO PARA BUSCAR RESULTADOS DAS VOTAÇÕES - CORRIGIDA
+const buscarResultadosVotacoes = async () => {
+  try {
+    // Busca todas as votações (ativas e inativas)
+    const { data: votacoes, error: votacoesError } = await supabase
+      .from("votacoes")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (votacoesError) throw votacoesError;
+
+    // Para cada votação, busca os resultados
+    const resultadosCompletos = await Promise.all(
+      votacoes.map(async (votacao) => {
+        // Busca todos os votos desta votação - CORREÇÃO: created_at em vez de data_voto
+        const { data: votos, error: votosError } = await supabase
+          .from("votos")
+          .select(
+            `
+            arte_id,
+            nome_eleitor,
+            created_at
+          `
+          )
+          .eq("votacao_id", votacao.id);
+
+        if (votosError) throw votosError;
+
+        // Busca informações das artes votadas
+        const artesIds = [...new Set(votos.map((v) => v.arte_id))];
+
+        if (artesIds.length === 0) {
+          return {
+            ...votacao,
+            resultados: { Iniciante: [], Intermediário: [], Avançado: [] },
+            totalVotos: 0,
+            totalVotantes: 0,
+            participantes: 0,
+          };
+        }
+
+        const { data: artes, error: artesError } = await supabase
+          .from("envios")
+          .select("*")
+          .in("id", artesIds);
+
+        if (artesError) throw artesError;
+
+        // Processa os resultados
+        const resultados = {};
+        votos.forEach((voto) => {
+          const arte = artes.find((a) => a.id === voto.arte_id);
+          if (arte) {
+            const key = `${arte.id}_${arte.nivel}`;
+            if (!resultados[key]) {
+              resultados[key] = {
+                arte,
+                votos: 0,
+                nivel: arte.nivel,
+                votantes: [],
+              };
+            }
+            resultados[key].votos++;
+            resultados[key].votantes.push({
+              nome: voto.nome_eleitor,
+              data: voto.created_at, // CORREÇÃO: created_at em vez de data_voto
+            });
+          }
+        });
+
+        // Separa por nível e ordena
+        const porNivel = {
+          Iniciante: Object.values(resultados)
+            .filter((r) => r.nivel === "Iniciante")
+            .sort((a, b) => b.votos - a.votos),
+          Intermediário: Object.values(resultados)
+            .filter((r) => r.nivel === "Intermediário")
+            .sort((a, b) => b.votos - a.votos),
+          Avançado: Object.values(resultados)
+            .filter((r) => r.nivel === "Avançado")
+            .sort((a, b) => b.votos - a.votos),
+        };
+
+        return {
+          ...votacao,
+          resultados: porNivel,
+          totalVotos: votos.length,
+          totalVotantes: [...new Set(votos.map((v) => v.nome_eleitor))].length,
+          participantes: artesIds.length,
+        };
+      })
+    );
+
+    return resultadosCompletos;
+  } catch (error) {
+    console.error("Erro ao buscar resultados:", error);
+    throw error;
+  }
+};
+
+// COMPONENTE DE GRÁFICO DE BARRAS
+const GraficoBarras = ({ dados, titulo, nivel }) => {
+  const cores = {
+    Iniciante: "#4CAF50",
+    Intermediário: "#FF9800",
+    Avançado: "#F44336",
+  };
+
+  const corNivel = cores[nivel] || "#667eea";
+  const maxVotos = Math.max(...dados.map((d) => d.votos), 1);
+
+  return (
+    <div className="grafico-container">
+      <h4 className="grafico-titulo" style={{ color: corNivel }}>
+        {titulo}
+      </h4>
+
+      {dados.length === 0 ? (
+        <div className="sem-dados">
+          <p>Nenhum voto registrado neste nível</p>
+        </div>
+      ) : (
+        <div className="barras-container">
+          {dados.slice(0, 5).map((item, index) => {
+            const porcentagem = (item.votos / maxVotos) * 100;
+            const posicao = index + 1;
+
+            return (
+              <div key={item.arte.id} className="barra-item">
+                <div className="barra-info">
+                  <div
+                    className="posicao-badge"
+                    style={{ backgroundColor: corNivel }}
+                  >
+                    {posicao === 1
+                      ? "🏆"
+                      : posicao === 2
+                      ? "🥈"
+                      : posicao === 3
+                      ? "🥉"
+                      : posicao}
+                  </div>
+
+                  <div className="artista-info">
+                    <div className="artista-avatar">
+                      <img
+                        src={item.arte.arquivo_url}
+                        alt={`Arte de ${item.arte.nome}`}
+                        className="mini-arte"
+                        onError={(e) => {
+                          e.target.src =
+                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23ddd'/%3E%3Ctext x='20' y='25' text-anchor='middle' font-size='12' fill='%23999'%3E?%3C/text%3E%3C/svg%3E";
+                        }}
+                      />
+                    </div>
+                    <div className="artista-detalhes">
+                      <span className="artista-nome">{item.arte.nome}</span>
+                      <span className="votos-count">
+                        {item.votos} voto{item.votos !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="barra-visual">
+                  <div
+                    className="barra-progresso"
+                    style={{
+                      width: `${porcentagem}%`,
+                      backgroundColor: corNivel,
+                      opacity: 1 - index * 0.15,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// COMPONENTE DE RESULTADOS
+const ResultadosVotacao = () => {
+  const [votacoes, setVotacoes] = useState([]);
+  const [votacaoSelecionada, setVotacaoSelecionada] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    carregarResultados();
+  }, []);
+
+  const carregarResultados = async () => {
+    try {
+      setLoading(true);
+      const dados = await buscarResultadosVotacoes();
+      setVotacoes(dados);
+      if (dados.length > 0) {
+        setVotacaoSelecionada(dados[0]);
+      }
+    } catch (err) {
+      setError("Erro ao carregar resultados das votações");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-state">
+        <BarChart3 className="animate-spin" size={32} />
+        <p>Carregando resultados...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-state">
+        <p>{error}</p>
+        <button onClick={carregarResultados} className="btn btn--primary">
+          Tentar Novamente
+        </button>
+      </div>
+    );
+  }
+
+  if (votacoes.length === 0) {
+    return (
+      <div className="empty-state">
+        <Trophy size={48} />
+        <h3>Nenhuma votação encontrada</h3>
+        <p>Crie uma votação para ver os resultados aqui</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="resultados-container">
+      <div className="resultados-header">
+        <h3 className="tab-title">
+          <Trophy size={24} />
+          Resultados das Votações
+        </h3>
+
+        <div className="votacao-selector">
+          <label htmlFor="votacao-select">Selecionar Votação:</label>
+          <select
+            id="votacao-select"
+            value={votacaoSelecionada?.id || ""}
+            onChange={(e) => {
+              const votacao = votacoes.find(
+                (v) => v.id === parseInt(e.target.value)
+              );
+              setVotacaoSelecionada(votacao);
+            }}
+            className="select-input"
+          >
+            {votacoes.map((votacao) => (
+              <option key={votacao.id} value={votacao.id}>
+                {votacao.titulo} -{" "}
+                {new Date(votacao.created_at).toLocaleDateString("pt-BR")}
+                {votacao.ativa && " (Ativa)"}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {votacaoSelecionada && (
+        <>
+          {/* Estatísticas Gerais */}
+          <div className="stats-grid">
+            <div className="stat-card stat-card--blue">
+              <div className="stat-content">
+                <div className="stat-info">
+                  <p className="stat-label">Total de Votos</p>
+                  <p className="stat-value">{votacaoSelecionada.totalVotos}</p>
+                </div>
+                <div className="stat-icon">🗳️</div>
+              </div>
+            </div>
+
+            <div className="stat-card stat-card--green">
+              <div className="stat-content">
+                <div className="stat-info">
+                  <p className="stat-label">Votantes Únicos</p>
+                  <p className="stat-value">
+                    {votacaoSelecionada.totalVotantes}
+                  </p>
+                </div>
+                <div className="stat-icon">👥</div>
+              </div>
+            </div>
+
+            <div className="stat-card stat-card--purple">
+              <div className="stat-content">
+                <div className="stat-info">
+                  <p className="stat-label">Artes Participantes</p>
+                  <p className="stat-value">
+                    {votacaoSelecionada.participantes}
+                  </p>
+                </div>
+                <div className="stat-icon">🎨</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Gráficos por Nível */}
+          <div className="graficos-niveis">
+            <GraficoBarras
+              dados={votacaoSelecionada.resultados["Iniciante"] || []}
+              titulo="🏆 Ranking Iniciante"
+              nivel="Iniciante"
+            />
+
+            <GraficoBarras
+              dados={votacaoSelecionada.resultados["Intermediário"] || []}
+              titulo="🏆 Ranking Intermediário"
+              nivel="Intermediário"
+            />
+
+            <GraficoBarras
+              dados={votacaoSelecionada.resultados["Avançado"] || []}
+              titulo="🏆 Ranking Avançado"
+              nivel="Avançado"
+            />
+          </div>
+
+          {/* Status da Votação */}
+          <div className="votacao-status">
+            <div
+              className={`status-badge ${
+                votacaoSelecionada.ativa ? "ativa" : "encerrada"
+              }`}
+            >
+              {votacaoSelecionada.ativa
+                ? "🔴 Votação Ativa"
+                : "✅ Votação Encerrada"}
+            </div>
+            <p className="votacao-data">
+              Criada em:{" "}
+              {new Date(votacaoSelecionada.created_at).toLocaleString("pt-BR")}
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// COMPONENTE ADMIN PRINCIPAL (ATUALIZADO)
 const Admin = ({
   setEnvioAtivo,
   setVotacaoAtiva,
@@ -74,7 +431,7 @@ const Admin = ({
 
   const login = (e) => {
     e.preventDefault();
-    if (pass === "admin123") {
+    if (pass === "cknymos0101") {
       setAuth(true);
       sessionStorage.setItem("adminAuth", "true");
     } else {
@@ -180,6 +537,7 @@ const Admin = ({
               { id: "controles", label: "🎛️ Controles" },
               { id: "artes", label: "🎨 Desenhos", count: artes.length },
               { id: "stats", label: "📊 Estatísticas" },
+              { id: "resultados", label: "🏆 Resultados" }, // NOVA TAB
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -456,6 +814,13 @@ const Admin = ({
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* NOVA TAB - RESULTADOS */}
+            {activeTab === "resultados" && (
+              <div className="resultados-tab">
+                <ResultadosVotacao />
               </div>
             )}
           </div>

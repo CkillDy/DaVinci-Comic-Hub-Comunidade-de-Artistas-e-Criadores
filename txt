@@ -1,5 +1,5 @@
 /* Importação de fontes */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
 
 * {
   padding: 0px;
@@ -10,7 +10,7 @@
 /* Estilos Globais */
 body {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   background-color: #0d0d1b;
   color: #e0e0e0;
   line-height: 1.6;
@@ -380,7 +380,6 @@ body {
   background-color: #556cd6;
 }
 
-
 /* BrushGallery */
 
 .envioMain {
@@ -479,7 +478,6 @@ body {
   background-color: #556cd6;
 }
 
-
 /* social links */
 
 .card {
@@ -528,7 +526,6 @@ body {
   background-color: #3a3a5f;
   transform: scale(1.05);
 }
-
 
 /* Galeria de Artes - Stylesheet */
 

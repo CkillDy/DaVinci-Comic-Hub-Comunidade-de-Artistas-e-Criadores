@@ -8,6 +8,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import "./App.css";
+import "./Votacao.css";
 import useGitHubData from "./configGit";
 import Admin from "./components/Admin";
 import VideoGallerySlider from "./components/VideosGalerrySlider";

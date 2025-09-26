@@ -1,12 +1,15 @@
-// lib/supabase.js
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = "https://ajtdyjlzwpzqfqhkbrzj.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdGR5amx6d3B6cWZxaGticnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1MDYzNDIsImV4cCI6MjA3NDA4MjM0Mn0.g0hxkZrZ5jiEMsIK1RU0QVuI4LWgXZD56HWrcyNcslk";
 
-// Cria uma única instância do cliente Supabase
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  db: {
+    // Adicione esta linha para garantir que o schema padrão 'public' seja usado
+    schema: "public",
+  },
+});
 
 // ========================
 // FUNÇÕES DE UPLOAD
@@ -45,7 +48,6 @@ export const testarConexao = async () => {
     console.log("🧪 Testando conexão com Supabase...");
     console.log("📍 URL:", SUPABASE_URL);
 
-    // Primeiro, tenta buscar a estrutura da tabela
     const { data: tableInfo, error: tableError } = await supabase
       .from("envios")
       .select("*")
@@ -53,30 +55,6 @@ export const testarConexao = async () => {
 
     if (tableError) {
       console.error("❌ Erro ao acessar tabela 'envios':", tableError);
-
-      // Verifica se a tabela existe com um nome diferente
-      console.log("🔍 Verificando outras possíveis tabelas...");
-
-      // Tenta outras possibilidades comuns
-      const tentativas = ["envio", "desenhos", "artes", "submissions"];
-
-      for (const tabela of tentativas) {
-        try {
-          const { data, error } = await supabase
-            .from(tabela)
-            .select("*")
-            .limit(1);
-          if (!error && data) {
-            console.log(
-              `✅ Tabela encontrada: '${tabela}' com ${data.length} registro(s)`
-            );
-            return { sucesso: true, tabela, dados: data };
-          }
-        } catch (err) {
-          console.log(`❌ Tabela '${tabela}' não existe`);
-        }
-      }
-
       return {
         sucesso: false,
         erro: "Nenhuma tabela de envios encontrada",
@@ -92,7 +70,7 @@ export const testarConexao = async () => {
   }
 };
 
-// BUSCAR TODOS OS ENVIOS (para galeria pública e admin)
+// ============= FUNÇÕES DE ENVIO (mantidas como estão) =============
 export const criarEnvio = async (dadosEnvio) => {
   try {
     const { error } = await supabase.from("envios").insert([
@@ -113,7 +91,6 @@ export const criarEnvio = async (dadosEnvio) => {
   }
 };
 
-// BUSCAR TODOS OS ENVIOS (para galeria pública e admin)
 export const buscarTodosEnvios = async () => {
   try {
     console.log("🔍 Buscando envios na tabela 'envios'...");
@@ -138,7 +115,6 @@ export const buscarTodosEnvios = async () => {
   }
 };
 
-// REMOVER ENVIO (única função de remoção necessária)
 export const removerEnvio = async (envioId) => {
   try {
     const { error } = await supabase.from("envios").delete().eq("id", envioId);
@@ -148,6 +124,355 @@ export const removerEnvio = async (envioId) => {
   } catch (err) {
     console.error("Erro ao remover envio:", err);
     throw err;
+  }
+};
+
+// Aliases para manter compatibilidade
+export const salvarEnvio = criarEnvio;
+export const aprovarEnvio = async (id) => {
+  try {
+    const { data, error } = await supabase
+      .from("envios")
+      .update({ aprovado: true })
+      .eq("id", id)
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  } catch (error) {
+    console.error("Erro ao aprovar envio:", error);
+    throw error;
+  }
+};
+
+export const rejeitarEnvio = removerEnvio;
+
+// ============= FUNÇÕES DE VOTAÇÃO (simplificadas) =============
+
+export const criarVotacaoSemanal = async (artesIds, titulo) => {
+  try {
+    console.log("Iniciando criação de votação...", { artesIds, titulo });
+
+    // 1. Desativa votações anteriores (se existir alguma)
+    try {
+      await supabase
+        .from("votacoes")
+        .update({ ativa: false })
+        .eq("ativa", true);
+    } catch (err) {
+      console.log("Nenhuma votação anterior para desativar");
+    }
+
+    // 2. Remove marca de votação de artes anteriores
+    try {
+      await supabase
+        .from("envios")
+        .update({ em_votacao: false })
+        .eq("em_votacao", true);
+    } catch (err) {
+      console.log("Nenhuma arte anterior marcada");
+    }
+
+    // 3. Criar nova votação (sem created_at manual)
+    const { data: votacao, error: votacaoError } = await supabase
+      .from("votacoes")
+      .insert([
+        {
+          titulo: titulo,
+          ativa: true,
+        },
+      ])
+      .select()
+      .single();
+
+    if (votacaoError) {
+      console.error("Erro ao inserir votação:", votacaoError);
+      throw votacaoError;
+    }
+
+    console.log("Votação criada:", votacao);
+
+    // 4. Marcar artes selecionadas (uma por vez para debug)
+    for (const arteId of artesIds) {
+      const { error: arteError } = await supabase
+        .from("envios")
+        .update({ em_votacao: true })
+        .eq("id", arteId);
+
+      if (arteError) {
+        console.error(`Erro ao marcar arte ${arteId}:`, arteError);
+        throw arteError;
+      }
+    }
+
+    console.log("Votação criada com sucesso:", votacao);
+    return votacao;
+  } catch (error) {
+    console.error("Erro ao criar votação semanal:", error);
+    throw error;
+  }
+};
+
+export const buscarVotacaoAtiva = async () => {
+  try {
+    // 1. Busca votação ativa
+    const { data: votacao, error: votacaoError } = await supabase
+      .from("votacoes")
+      .select("*")
+      .eq("ativa", true)
+      .single();
+
+    if (votacaoError && votacaoError.code !== "PGRST116") {
+      throw votacaoError;
+    }
+
+    if (!votacao) {
+      return null; // Sem votação ativa
+    }
+
+    // 2. Busca artes em votação (sem filtro de aprovado por enquanto)
+    const { data: artes, error: artesError } = await supabase
+      .from("envios")
+      .select("*")
+      .eq("em_votacao", true);
+
+    if (artesError) throw artesError;
+
+    // 3. Conta votos para cada arte
+    const artesComVotos = await Promise.all(
+      (artes || []).map(async (arte) => {
+        const { count, error: countError } = await supabase
+          .from("votos")
+          .select("*", { count: "exact" })
+          .eq("arte_id", arte.id)
+          .eq("votacao_id", votacao.id);
+
+        if (countError) {
+          console.error("Erro ao contar votos:", countError);
+        }
+
+        return {
+          id: `votacao_arte_${arte.id}`, // ID único para o componente
+          arte_id: arte.id,
+          envios: arte,
+          votos: count || 0,
+        };
+      })
+    );
+
+    return {
+      ...votacao,
+      votacao_artes: artesComVotos,
+    };
+  } catch (error) {
+    console.error("Erro ao buscar votação ativa:", error);
+    throw error;
+  }
+};
+
+export const votarEmArte = async (votoData) => {
+  try {
+    const { data, error } = await supabase
+      .from("votos")
+      .insert([
+        {
+          whatsapp_eleitor: votoData.whatsapp_eleitor,
+          email_eleitor: votoData.email_eleitor,
+          nome_eleitor: votoData.nome_eleitor,
+          votacao_id: votoData.votacao_id,
+          arte_id: votoData.arte_id,
+          nivel_arte: votoData.nivel_arte,
+        },
+      ])
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  } catch (error) {
+    console.error("Erro ao registrar voto:", error);
+    throw error;
+  }
+};
+
+export const verificarSeJaVotou = async (whatsapp, votacaoId) => {
+  try {
+    const { data, error } = await supabase
+      .from("votos")
+      .select("id")
+      .eq("whatsapp_eleitor", whatsapp)
+      .eq("votacao_id", votacaoId);
+
+    if (error) throw error;
+    return data && data.length > 0;
+  } catch (error) {
+    console.error("Erro ao verificar voto:", error);
+    return false;
+  }
+};
+
+export const encerrarVotacao = async (votacaoId) => {
+  try {
+    const { data, error } = await supabase
+      .from("votacoes")
+      .update({ ativa: false })
+      .eq("id", votacaoId)
+      .select();
+
+    if (error) throw error;
+
+    // Remove marca de votação das artes
+    await supabase
+      .from("envios")
+      .update({ em_votacao: false })
+      .eq("em_votacao", true);
+
+    return data[0];
+  } catch (error) {
+    console.error("Erro ao encerrar votação:", error);
+    throw error;
+  }
+};
+
+export const buscarResultadosVotacao = async (votacaoId) => {
+  try {
+    // Busca todos os votos da votação
+    const { data: votos, error } = await supabase
+      .from("votos")
+      .select(
+        `
+        arte_id,
+        envios (
+          nome,
+          nivel,
+          desafio,
+          arquivo_url
+        )
+      `
+      )
+      .eq("votacao_id", votacaoId);
+
+    if (error) throw error;
+
+    // Agrupa votos por arte
+    const resultados = {};
+    votos.forEach((voto) => {
+      const arteId = voto.arte_id;
+      if (!resultados[arteId]) {
+        resultados[arteId] = {
+          arte: voto.envios,
+          votos: 0,
+        };
+      }
+      resultados[arteId].votos++;
+    });
+
+    // Converte para array e ordena por votos
+    return Object.values(resultados).sort((a, b) => b.votos - a.votos);
+  } catch (error) {
+    console.error("Erro ao buscar resultados:", error);
+    throw error;
+  }
+};
+
+// ========================
+// FUNÇÃO PARA RESULTADOS COMPLETOS (PARA ADMIN) - CORRIGIDA
+// ========================
+export const buscarResultadosVotacoes = async () => {
+  try {
+    // Busca todas as votações (ativas e inativas)
+    const { data: votacoes, error: votacoesError } = await supabase
+      .from("votacoes")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (votacoesError) throw votacoesError;
+
+    // Para cada votação, busca os resultados
+    const resultadosCompletos = await Promise.all(
+      votacoes.map(async (votacao) => {
+        // Busca todos os votos desta votação - CORREÇÃO AQUI
+        const { data: votos, error: votosError } = await supabase
+          .from("votos")
+          .select(
+            `
+            arte_id,
+            nome_eleitor,
+            created_at
+          `
+          )
+          .eq("votacao_id", votacao.id);
+
+        if (votosError) throw votosError;
+
+        // Busca informações das artes votadas
+        const artesIds = [...new Set(votos.map((v) => v.arte_id))];
+
+        if (artesIds.length === 0) {
+          return {
+            ...votacao,
+            resultados: { Iniciante: [], Intermediário: [], Avançado: [] },
+            totalVotos: 0,
+            totalVotantes: 0,
+            participantes: 0,
+          };
+        }
+
+        const { data: artes, error: artesError } = await supabase
+          .from("envios")
+          .select("*")
+          .in("id", artesIds);
+
+        if (artesError) throw artesError;
+
+        // Processa os resultados
+        const resultados = {};
+        votos.forEach((voto) => {
+          const arte = artes.find((a) => a.id === voto.arte_id);
+          if (arte) {
+            const key = `${arte.id}_${arte.nivel}`;
+            if (!resultados[key]) {
+              resultados[key] = {
+                arte,
+                votos: 0,
+                nivel: arte.nivel,
+                votantes: [],
+              };
+            }
+            resultados[key].votos++;
+            resultados[key].votantes.push({
+              nome: voto.nome_eleitor,
+              data: voto.created_at, // CORREÇÃO: created_at em vez de data_voto
+            });
+          }
+        });
+
+        // Separa por nível e ordena
+        const porNivel = {
+          Iniciante: Object.values(resultados)
+            .filter((r) => r.nivel === "Iniciante")
+            .sort((a, b) => b.votos - a.votos),
+          Intermediário: Object.values(resultados)
+            .filter((r) => r.nivel === "Intermediário")
+            .sort((a, b) => b.votos - a.votos),
+          Avançado: Object.values(resultados)
+            .filter((r) => r.nivel === "Avançado")
+            .sort((a, b) => b.votos - a.votos),
+        };
+
+        return {
+          ...votacao,
+          resultados: porNivel,
+          totalVotos: votos.length,
+          totalVotantes: [...new Set(votos.map((v) => v.nome_eleitor))].length,
+          participantes: artesIds.length,
+        };
+      })
+    );
+
+    return resultadosCompletos;
+  } catch (error) {
+    console.error("Erro ao buscar resultados das votações:", error);
+    throw error;
   }
 };
 
@@ -204,128 +529,4 @@ export const buscarEstatisticas = async () => {
   }
 };
 
-// ========================
-// FUNÇÕES DE VOTAÇÃO (mantidas para funcionalidade futura)
-// ========================
-export const buscarVotacaoAtiva = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("votacoes")
-      .select(
-        `
-        *,
-        votacao_artes (
-          *,
-          envios (*)
-        )
-      `
-      )
-      .eq("ativa", true)
-      .single();
-
-    if (error && error.code !== "PGRST116") throw error;
-    return data;
-  } catch (err) {
-    console.error("Erro ao buscar votação ativa:", err);
-    return null;
-  }
-};
-
-export const criarVotacaoSemanal = async (
-  artesIds,
-  titulo = "Votação Semanal"
-) => {
-  try {
-    // 1. Cria a votação
-    const dataInicio = new Date();
-    const dataFim = new Date();
-    dataFim.setDate(dataFim.getDate() + 7); // 7 dias de duração
-
-    const { data: votacao, error: erroVotacao } = await supabase
-      .from("votacoes")
-      .insert([
-        {
-          titulo,
-          data_inicio: dataInicio.toISOString(),
-          data_fim: dataFim.toISOString(),
-          ativa: true,
-        },
-      ])
-      .select()
-      .single();
-
-    if (erroVotacao) throw erroVotacao;
-
-    // 2. Adiciona as artes à votação
-    const votacaoArtes = artesIds.map((arteId) => ({
-      votacao_id: votacao.id,
-      envio_id: arteId,
-      votos: 0,
-    }));
-
-    const { error: erroArtes } = await supabase
-      .from("votacao_artes")
-      .insert(votacaoArtes);
-
-    if (erroArtes) throw erroArtes;
-
-    return votacao;
-  } catch (err) {
-    console.error("Erro ao criar votação semanal:", err);
-    throw err;
-  }
-};
-
-export const votarEmArte = async (votacaoArteId, identificadorVotante) => {
-  try {
-    // Verifica se já votou
-    const { data: jaVotou } = await supabase
-      .from("votos")
-      .select("id")
-      .eq("votacao_arte_id", votacaoArteId)
-      .eq("identificador_votante", identificadorVotante)
-      .single();
-
-    if (jaVotou) {
-      throw new Error("Você já votou nesta arte!");
-    }
-
-    // Registra o voto
-    const { error: erroVoto } = await supabase.from("votos").insert([
-      {
-        votacao_arte_id: votacaoArteId,
-        identificador_votante,
-        created_at: new Date().toISOString(),
-      },
-    ]);
-
-    if (erroVoto) throw erroVoto;
-
-    // Incrementa contador de votos
-    const { error: erroIncremento } = await supabase.rpc("incrementar_votos", {
-      votacao_arte_id: votacaoArteId,
-    });
-
-    if (erroIncremento) throw erroIncremento;
-
-    return true;
-  } catch (err) {
-    console.error("Erro ao votar:", err);
-    throw err;
-  }
-};
-
-export const finalizarVotacao = async (votacaoId) => {
-  try {
-    const { error } = await supabase
-      .from("votacoes")
-      .update({ ativa: false })
-      .eq("id", votacaoId);
-
-    if (error) throw error;
-    return true;
-  } catch (err) {
-    console.error("Erro ao finalizar votação:", err);
-    throw err;
-  }
-};
+export { supabase };
