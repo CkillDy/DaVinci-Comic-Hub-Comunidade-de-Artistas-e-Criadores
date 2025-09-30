@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Eye, Trash2, RefreshCw, BarChart3, Trophy } from "lucide-react";
 import { buscarTodosEnvios, removerEnvio, supabase } from "../hooks/superbase";
 
-// SUBSTITUA esta função no arquivo Admin.jsx (por volta da linha 10-100)
-
 // FUNÇÃO PARA BUSCAR RESULTADOS DAS VOTAÇÕES - CORRIGIDA
 const buscarResultadosVotacoes = async () => {
   try {
@@ -358,7 +356,7 @@ const ResultadosVotacao = () => {
   );
 };
 
-// COMPONENTE ADMIN PRINCIPAL (ATUALIZADO)
+// COMPONENTE ADMIN PRINCIPAL
 const Admin = ({
   setEnvioAtivo,
   setVotacaoAtiva,
@@ -367,7 +365,7 @@ const Admin = ({
 }) => {
   const [pass, setPass] = useState("");
   const [auth, setAuth] = useState(() => {
-    return sessionStorage.getItem("adminAuth") === "true";
+    return localStorage.getItem("adminAuth") === "true";
   });
   const [activeTab, setActiveTab] = useState("controles");
   const [previewImage, setPreviewImage] = useState(null);
@@ -376,6 +374,10 @@ const Admin = ({
   const [artes, setArtes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Estados para as funcionalidades
+  const [termoPesquisa, setTermoPesquisa] = useState("");
+  const [artesFiltradas, setArtesFiltradas] = useState([]);
 
   // Estatísticas calculadas
   const stats = React.useMemo(() => {
@@ -408,7 +410,129 @@ const Admin = ({
     };
   }, [artes]);
 
-  // Carrega todas as artes
+  // useEffect para filtrar artes
+  useEffect(() => {
+    if (!termoPesquisa.trim()) {
+      setArtesFiltradas(artes);
+    } else {
+      const filtradas = artes.filter(
+        (arte) =>
+          arte.nome.toLowerCase().includes(termoPesquisa.toLowerCase()) ||
+          arte.whatsapp.includes(termoPesquisa) ||
+          arte.nivel.toLowerCase().includes(termoPesquisa.toLowerCase()) ||
+          arte.desafio.toLowerCase().includes(termoPesquisa.toLowerCase())
+      );
+      setArtesFiltradas(filtradas);
+    }
+  }, [artes, termoPesquisa]);
+
+  // FUNÇÃO MELHORADA PARA DOWNLOAD EM ZIP
+  const handleDownloadAll = async () => {
+    if (artesFiltradas.length === 0) {
+      alert("Nenhuma arte para baixar!");
+      return;
+    }
+
+    if (!confirm(`Deseja baixar ${artesFiltradas.length} imagens em ZIP?`))
+      return;
+
+    try {
+      setLoading(true);
+
+      // Importar JSZip dinamicamente
+      const JSZip = (await import("https://cdn.skypack.dev/jszip")).default;
+      const zip = new JSZip();
+
+      // Determinar nome do desafio mais comum
+      const desafios = artesFiltradas.map((arte) => arte.desafio);
+      const desafioMaisComum = desafios.reduce((a, b) =>
+        desafios.filter((v) => v === a).length >=
+        desafios.filter((v) => v === b).length
+          ? a
+          : b
+      );
+
+      // Baixar e adicionar cada imagem ao ZIP
+      for (let i = 0; i < artesFiltradas.length; i++) {
+        const arte = artesFiltradas[i];
+
+        try {
+          const response = await fetch(arte.arquivo_url);
+          const blob = await response.blob();
+
+          // Nome do arquivo: Nome_Nivel_Data.jpg
+          const data = new Date(arte.created_at)
+            .toLocaleDateString("pt-BR")
+            .replace(/\//g, "-");
+          const nomeArquivo = `${arte.nome}_${arte.nivel}_${data}.jpg`;
+
+          zip.file(nomeArquivo, blob);
+        } catch (err) {
+          console.error(`Erro ao baixar arte de ${arte.nome}:`, err);
+        }
+      }
+
+      // Gerar e baixar o ZIP
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = `Desafio_${desafioMaisComum}_${new Date()
+        .toLocaleDateString("pt-BR")
+        .replace(/\//g, "-")}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(link.href);
+
+      alert(`ZIP baixado com ${artesFiltradas.length} imagens!`);
+    } catch (err) {
+      console.error("Erro ao criar ZIP:", err);
+      alert("Erro ao criar arquivo ZIP. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExcluirTodos = async () => {
+    if (artes.length === 0) {
+      alert("Nenhuma arte para excluir!");
+      return;
+    }
+
+    const confirmacao = confirm(
+      `ATENÇÃO: Deseja EXCLUIR todas as ${artes.length} artes?\n\nEsta ação NÃO PODE ser desfeita!`
+    );
+
+    if (!confirmacao) return;
+
+    const segundaConfirmacao = confirm(
+      "ÚLTIMA CONFIRMAÇÃO: Tem CERTEZA ABSOLUTA?\n\nTodas as artes serão perdidas!"
+    );
+
+    if (!segundaConfirmacao) return;
+
+    try {
+      setLoading(true);
+
+      for (const arte of artes) {
+        await removerEnvio(arte.id);
+      }
+
+      setArtes([]);
+      setArtesFiltradas([]);
+      alert("Todas as artes foram excluídas!");
+    } catch (err) {
+      console.error("Erro ao excluir:", err);
+      alert("Erro ao excluir. Recarregue a página.");
+      carregarArtes();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Carregar todas as artes
   const carregarArtes = async () => {
     setLoading(true);
     setError(null);
@@ -433,7 +557,7 @@ const Admin = ({
     e.preventDefault();
     if (pass === "cknymos0101") {
       setAuth(true);
-      sessionStorage.setItem("adminAuth", "true");
+      localStorage.setItem("adminAuth", "true");
     } else {
       alert("Senha incorreta!");
     }
@@ -465,7 +589,7 @@ const Admin = ({
       setAuth(false);
       setPass("");
       setActiveTab("controles");
-      sessionStorage.removeItem("adminAuth");
+      localStorage.removeItem("adminAuth");
     }
   };
 
@@ -537,7 +661,7 @@ const Admin = ({
               { id: "controles", label: "🎛️ Controles" },
               { id: "artes", label: "🎨 Desenhos", count: artes.length },
               { id: "stats", label: "📊 Estatísticas" },
-              { id: "resultados", label: "🏆 Resultados" }, // NOVA TAB
+              { id: "resultados", label: "🏆 Resultados" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -633,6 +757,32 @@ const Admin = ({
               <div className="artes-tab">
                 <div className="tab-header">
                   <h3 className="tab-title">🎨 Todas as Artes da Galeria</h3>
+
+                  {/* Área de ações */}
+                  <div className="artes-actions">
+                    <input
+                      className="input input--primary"
+                      type="text"
+                      onChange={(e) => setTermoPesquisa(e.target.value)}
+                      placeholder="Pesquisar por nome, nível, WhatsApp..."
+                      value={termoPesquisa}
+                    />
+                    <button
+                      onClick={handleDownloadAll}
+                      className="btn btn--secondary"
+                      disabled={loading || artesFiltradas.length === 0}
+                    >
+                      📦 Baixar ZIP ({artesFiltradas.length})
+                    </button>
+                    <button
+                      onClick={handleExcluirTodos}
+                      className="btn btn--danger"
+                      disabled={loading || artes.length === 0}
+                    >
+                      🗑️ Excluir TODOS
+                    </button>
+                  </div>
+
                   <p className="tab-description">
                     Visualize e gerencie todas as artes enviadas pelos usuários
                   </p>
@@ -650,74 +800,96 @@ const Admin = ({
                         <div className="empty-icon">🎨</div>
                         <p className="empty-text">Nenhuma arte enviada ainda</p>
                       </div>
+                    ) : artesFiltradas.length === 0 ? (
+                      <div className="empty-state">
+                        <div className="empty-icon">🔍</div>
+                        <p className="empty-text">
+                          Nenhuma arte encontrada com "{termoPesquisa}"
+                        </p>
+                        <button
+                          onClick={() => setTermoPesquisa("")}
+                          className="btn btn--secondary btn--small"
+                        >
+                          Limpar Pesquisa
+                        </button>
+                      </div>
                     ) : (
-                      <div className="envios-grid">
-                        {artes.map((arte) => (
-                          <div key={arte.id} className="envio-card">
-                            <div className="envio-image">
-                              <img
-                                className="image image--clickable"
-                                src={arte.arquivo_url}
-                                alt={`Arte de ${arte.nome}`}
-                                onClick={() =>
-                                  setPreviewImage(arte.arquivo_url)
-                                }
-                              />
-                              <button
-                                onClick={() =>
-                                  setPreviewImage(arte.arquivo_url)
-                                }
-                                className="btn btn--icon btn--preview"
-                              >
-                                <Eye size={16} />
-                              </button>
-                            </div>
-                            <div className="envio-content">
-                              <h4 className="envio-title">{arte.nome}</h4>
-                              <div className="envio-info">
-                                <p>
-                                  <strong>Nível:</strong>{" "}
-                                  <span className="tag tag--blue">
-                                    {arte.nivel}
-                                  </span>
-                                </p>
-                                <p>
-                                  <strong>WhatsApp:</strong> {arte.whatsapp}
-                                </p>
-                                <p>
-                                  <strong>Desafio:</strong>{" "}
-                                  <span className="tag tag--purple">
-                                    {arte.desafio}
-                                  </span>
-                                </p>
-                                <p>
-                                  <strong>Enviado:</strong>{" "}
-                                  {new Date(arte.created_at).toLocaleDateString(
-                                    "pt-BR",
-                                    {
+                      <>
+                        {termoPesquisa && (
+                          <div className="search-result-info">
+                            <p>
+                              Mostrando {artesFiltradas.length} de{" "}
+                              {artes.length} artes
+                            </p>
+                          </div>
+                        )}
+                        <div className="envios-grid">
+                          {artesFiltradas.map((arte) => (
+                            <div key={arte.id} className="envio-card">
+                              <div className="envio-image">
+                                <img
+                                  className="image image--clickable"
+                                  src={arte.arquivo_url}
+                                  alt={`Arte de ${arte.nome}`}
+                                  onClick={() =>
+                                    setPreviewImage(arte.arquivo_url)
+                                  }
+                                />
+                                <button
+                                  onClick={() =>
+                                    setPreviewImage(arte.arquivo_url)
+                                  }
+                                  className="btn btn--icon btn--preview"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                              </div>
+                              <div className="envio-content">
+                                <h4 className="envio-title">{arte.nome}</h4>
+                                <div className="envio-info">
+                                  <p>
+                                    <strong>Nível:</strong>{" "}
+                                    <span className="tag tag--blue">
+                                      {arte.nivel}
+                                    </span>
+                                  </p>
+                                  <p>
+                                    <strong>WhatsApp:</strong> {arte.whatsapp}
+                                  </p>
+                                  <p>
+                                    <strong>Desafio:</strong>{" "}
+                                    <span className="tag tag--purple">
+                                      {arte.desafio}
+                                    </span>
+                                  </p>
+                                  <p>
+                                    <strong>Enviado:</strong>{" "}
+                                    {new Date(
+                                      arte.created_at
+                                    ).toLocaleDateString("pt-BR", {
                                       day: "2-digit",
                                       month: "2-digit",
                                       year: "numeric",
                                       hour: "2-digit",
                                       minute: "2-digit",
-                                    }
-                                  )}
-                                </p>
-                              </div>
-                              <div className="envio-actions">
-                                <button
-                                  onClick={() => removerArte(arte)}
-                                  className="btn btn--danger btn--small"
-                                  disabled={loading}
-                                >
-                                  <Trash2 size={16} />
-                                  Remover
-                                </button>
+                                    })}
+                                  </p>
+                                </div>
+                                <div className="envio-actions">
+                                  <button
+                                    onClick={() => removerArte(arte)}
+                                    className="btn btn--danger btn--small"
+                                    disabled={loading}
+                                  >
+                                    <Trash2 size={16} />
+                                    Remover
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      </>
                     )}
                   </>
                 )}
@@ -817,7 +989,7 @@ const Admin = ({
               </div>
             )}
 
-            {/* NOVA TAB - RESULTADOS */}
+            {/* Tab Resultados */}
             {activeTab === "resultados" && (
               <div className="resultados-tab">
                 <ResultadosVotacao />
