@@ -4,53 +4,40 @@ import {
   buscarVotacaoAtiva,
   criarVotacaoSemanal,
   buscarTodosEnvios,
-} from "../hooks/superbase"; // Assumindo que essas funções estão corretas
+} from "../hooks/superbase";
 
 const SUPABASE_URL = "https://ajtdyjlzwpzqfqhkbrzj.supabase.co";
 const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdGR5amx6d3B6cWZxaGticnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1MDYzNDIsImV4cCI6MjA3NDA4MjM0Mn0.g0hxkZrZ5jiEMsIK1RU0QVuI4LWgXZD56HWrcyNcslk";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdGR5amx6d3B6cWZxaGticnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1MDYzNDIsImV4cCI6MjA3NDA4MjM0Mn0.g0hxkZrZ5jiEMsIK1RU0QVuI4LWgXZD56HWrcsNk";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   db: {
-    // Adicione esta linha para garantir que o schema padrão 'public' seja usado
     schema: "public",
   },
 });
 
 // --- FUNÇÕES DE ADMIN ---
-
-// Função para excluir votação - CORRIGIDA (com limpeza de localStorage)
 const excluirVotacao = async (votacaoId) => {
   try {
-    // 1. Remove todos os votos da votação
     await supabase.from("votos").delete().eq("votacao_id", votacaoId);
-
-    // 2. Remove marca de votação das artes
     await supabase
       .from("envios")
       .update({ em_votacao: false })
       .eq("em_votacao", true);
-
-    // 3. Remove a votação
     await supabase.from("votacoes").delete().eq("id", votacaoId);
 
-    // NOVO: Limpa o bloqueio no localStorage para que todos possam votar na próxima
     try {
-      // Remove a chave de persistência de voto para esta votação
       localStorage.removeItem(`votacao_ultimo_contato_${votacaoId}`);
-      // Em um ambiente de produção, seria bom iterar e limpar todos os contatos que votaram
     } catch (err) {
-      console.warn("Não foi possível limpar localStorage:", err);
+      // Ignora erro de localStorage
     }
 
     return true;
   } catch (error) {
-    console.error("Erro ao excluir votação:", error);
     throw error;
   }
 };
 
-// Componente de confirmação de exclusão (Sem alterações)
 const ConfirmacaoExclusao = ({ onConfirmar, onCancelar, loading }) => (
   <div className="modal-overlay">
     <div className="modal-exclusao">
@@ -91,7 +78,6 @@ const ConfirmacaoExclusao = ({ onConfirmar, onCancelar, loading }) => (
   </div>
 );
 
-// Componente para criar votação (Admin) (Sem alterações)
 const CriarVotacao = ({ onVotacaoCriada, onFechar }) => {
   const [titulo, setTitulo] = useState(
     "Votação Semanal - " + new Date().toLocaleDateString()
@@ -109,7 +95,6 @@ const CriarVotacao = ({ onVotacaoCriada, onFechar }) => {
     total: 0,
   });
 
-  // Carrega estatísticas das artes disponíveis
   useEffect(() => {
     const carregarEstatisticas = async () => {
       try {
@@ -135,7 +120,6 @@ const CriarVotacao = ({ onVotacaoCriada, onFechar }) => {
           setMsg("⚠️ Nenhuma arte de desafio encontrada para criar votação");
         }
       } catch (err) {
-        console.error("Erro ao carregar estatísticas:", err);
         setMsg("❌ Erro ao carregar artes disponíveis: " + err.message);
       } finally {
         setCarregandoArtes(false);
@@ -147,7 +131,6 @@ const CriarVotacao = ({ onVotacaoCriada, onFechar }) => {
 
   const criarVotacao = async (e) => {
     e.preventDefault();
-
     if (estatisticasArtes.total < 2) {
       return setMsg(
         "❌ É necessário pelo menos 2 artes de desafio para criar uma votação"
@@ -166,7 +149,6 @@ const CriarVotacao = ({ onVotacaoCriada, onFechar }) => {
       const artesDesafio = todasArtes.filter(
         (arte) => arte.desafio && arte.desafio !== "livre"
       );
-
       const idsArtesDesafio = artesDesafio.map((arte) => arte.id);
 
       await criarVotacaoSemanal(idsArtesDesafio, titulo.trim());
@@ -180,7 +162,6 @@ const CriarVotacao = ({ onVotacaoCriada, onFechar }) => {
         onVotacaoCriada();
       }, 2000);
     } catch (err) {
-      console.error("Erro ao criar votação:", err);
       setMsg(`❌ Erro ao criar votação: ${err.message}`);
     } finally {
       setLoading(false);
@@ -229,7 +210,6 @@ const CriarVotacao = ({ onVotacaoCriada, onFechar }) => {
           </p>
 
           <form onSubmit={criarVotacao} className="form-criar-votacao">
-            {/* Estatísticas das Artes */}
             <div className="card-estatisticas">
               <h3 className="titulo-secao-criar">
                 📊 Artes que serão incluídas na votação
@@ -282,7 +262,6 @@ const CriarVotacao = ({ onVotacaoCriada, onFechar }) => {
               </div>
             </div>
 
-            {/* Configurações da Votação */}
             <div className="card-configuracoes">
               <h3 className="titulo-secao-criar">
                 📝 Configurações da Votação
@@ -313,7 +292,6 @@ const CriarVotacao = ({ onVotacaoCriada, onFechar }) => {
               </div>
             </div>
 
-            {/* Botão Criar */}
             <div className="container-submit-criar">
               <button
                 type="submit"
@@ -356,7 +334,6 @@ const CriarVotacao = ({ onVotacaoCriada, onFechar }) => {
   );
 };
 
-// Componente para quem já votou - CORRIGIDO E MELHORADO
 const JaVotou = ({ emailVotante, votosRealizados, votantesRecentes }) => {
   const niveis = ["iniciante", "intermediario", "avancado"];
   const nomeNiveis = {
@@ -364,7 +341,6 @@ const JaVotou = ({ emailVotante, votosRealizados, votantesRecentes }) => {
     intermediario: "Intermediário",
     avancado: "Avançado",
   };
-
   return (
     <div className="ja-votou-container">
       <div className="ja-votou-card">
@@ -390,7 +366,6 @@ const JaVotou = ({ emailVotante, votosRealizados, votantesRecentes }) => {
           ))}
         </div>
 
-        {/* Votantes Recentes - NOVO */}
         {votantesRecentes && votantesRecentes.length > 0 && (
           <div className="votantes-recentes-section">
             <h3>🎉 Últimos que votaram:</h3>
@@ -431,8 +406,6 @@ const JaVotou = ({ emailVotante, votosRealizados, votantesRecentes }) => {
 };
 
 // --- COMPONENTE PRINCIPAL ---
-
-// Componente principal de votação - CORRIGIDO
 const Votacao = ({ votacaoAtiva }) => {
   const [nome, setNome] = useState("");
   const [contato, setContato] = useState("");
@@ -451,70 +424,38 @@ const Votacao = ({ votacaoAtiva }) => {
   const [mostrarCriarVotacao, setMostrarCriarVotacao] = useState(false);
   const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false);
   const [excluindoVotacao, setExcluindoVotacao] = useState(false);
-  const [votantesRecentes, setVotantesRecentes] = useState([]); // ADICIONADO
+  const [votantesRecentes, setVotantesRecentes] = useState([]);
 
-  // Verifica se é admin
-  const isAdmin = sessionStorage.getItem("adminAuth") === "true";
+  const isAdmin = localStorage.getItem("adminAuth") === "true";
 
-  // Função auxiliar para verificar voto (server-side check)
   const checkAlreadyVotedLevel = async (contato, nivel) => {
-    // A lógica original está buscando por qualquer voto do eleitor.
-    // Para simplificar e usar menos requisições, vamos considerar que a verificação
-    // no `verificarVotosRealizados` já cobre se ele votou naquele nível.
-    // Contudo, mantemos a função para o caso de uma checagem mais específica no futuro.
-
     const campoContato =
       tipoContato === "email" ? "email_eleitor" : "whatsapp_eleitor";
-
-    // NOTA: Para uma checagem *real* por nível, seria necessário o ID da arte do nível,
-    // o que tornaria esta função muito complexa. Para fins de prevenção de voto duplicado
-    // no nível, a checagem no `enviarVoto` (usando `votosRealizados`) já é o suficiente
-    // após a chamada de `verificarVotosRealizados`.
-
-    // Por enquanto, esta função será simplificada para retornar false,
-    // confiando no estado local `votosRealizados` que é populado
-    // por `verificarVotosRealizados`.
-    // A implementação original dela no seu código era ineficaz, então a removeremos ou simplificaremos.
-
-    // Já que o seu `enviarVoto` a usa, vou fazer uma checagem mais abrangente por segurança,
-    // mas a verdadeira proteção é o estado `votosRealizados`.
-
-    // Uma checagem mais robusta seria:
     const { data } = await supabase
       .from("votos")
       .select("id")
       .eq(campoContato, contato)
       .eq("votacao_id", votacaoData.id);
-
-    // Se o eleitor já votou em *qualquer* nível, a checagem é feita por nível
-    // no `verificarVotosRealizados`. A implementação original aqui era falha.
-    // Manteremos a checagem de nível mais simples e aprimorada no `enviarVoto`
-    // e o `votosRealizados` como a fonte de verdade.
-    // Para não quebrar seu `enviarVoto`, que espera um booleano:
-    return false; // Confia no estado `votosRealizados`
+    return false;
   };
 
-  // NOVA FUNÇÃO: Buscar votantes recentes
   const buscarVotantesRecentes = async (idVotacao) => {
     if (!idVotacao) return;
-
     try {
-      // Busca os últimos votos
       const { data, error } = await supabase
         .from("votos")
         .select("nome_eleitor, whatsapp_eleitor, email_eleitor, created_at")
         .eq("votacao_id", idVotacao)
         .order("created_at", { ascending: false })
-        .limit(20); // Buscar mais para ter 5 únicos
+        .limit(20);
 
       if (error) throw error;
 
       const votantesUnicos = [];
-      const contatosVistos = new Set(); // Usa Set para garantir unicidade por contato
+      const contatosVistos = new Set();
 
       data.forEach((voto) => {
         const contatoUnico = voto.whatsapp_eleitor || voto.email_eleitor;
-        // Se o contato ainda não foi visto e é válido
         if (contatoUnico && !contatosVistos.has(contatoUnico)) {
           contatosVistos.add(contatoUnico);
           votantesUnicos.push({
@@ -524,21 +465,18 @@ const Votacao = ({ votacaoAtiva }) => {
           });
         }
       });
-
       setVotantesRecentes(votantesUnicos);
     } catch (err) {
-      console.error("Erro ao buscar votantes:", err);
+      // Ignora erro
     }
   };
 
-  // Verifica votos já realizados - CORRIGIDO
   const verificarVotosRealizados = async (
     contatoParaVerificar,
     tipoParaVerificar = tipoContato,
     votacaoId = votacaoData?.id
   ) => {
     if (!contatoParaVerificar || !votacaoId) return;
-
     try {
       const campoContato =
         tipoParaVerificar === "email" ? "email_eleitor" : "whatsapp_eleitor";
@@ -548,11 +486,9 @@ const Votacao = ({ votacaoAtiva }) => {
         .select("arte_id")
         .eq(campoContato, contatoParaVerificar)
         .eq("votacao_id", votacaoId);
-
       if (error) throw error;
 
       if (data && data.length > 0) {
-        // Busca as artes votadas para identificar os níveis
         const artesVotadas = await Promise.all(
           data.map(async (voto) => {
             const { data: arte } = await supabase
@@ -563,7 +499,6 @@ const Votacao = ({ votacaoAtiva }) => {
             return arte;
           })
         );
-
         const novosVotosRealizados = {
           iniciante: artesVotadas.some((arte) => arte?.nivel === "Iniciante"),
           intermediario: artesVotadas.some(
@@ -571,19 +506,16 @@ const Votacao = ({ votacaoAtiva }) => {
           ),
           avancado: artesVotadas.some((arte) => arte?.nivel === "Avançado"),
         };
-
         setVotosRealizados(novosVotosRealizados);
 
-        // Se votou em QUALQUER nível, marca como votante para possível bloqueio da tela principal (se não for admin)
         const votouEmAlgumNivel =
           Object.values(novosVotosRealizados).some(Boolean);
         if (votouEmAlgumNivel) {
           setContatoVotante(contatoParaVerificar);
         } else {
-          setContatoVotante(""); // Limpa se por algum motivo não há votos válidos
+          setContatoVotante("");
         }
       } else {
-        // Limpa os estados se não encontrou votos
         setVotosRealizados({
           iniciante: false,
           intermediario: false,
@@ -592,11 +524,10 @@ const Votacao = ({ votacaoAtiva }) => {
         setContatoVotante("");
       }
     } catch (err) {
-      console.error("Erro ao verificar votos:", err);
+      // Ignora erro
     }
   };
 
-  // Carrega votação ativa e verifica persistência - CORRIGIDO
   useEffect(() => {
     const carregarVotacao = async () => {
       try {
@@ -607,7 +538,6 @@ const Votacao = ({ votacaoAtiva }) => {
           if (votacao) {
             const votacaoId = votacao.id;
 
-            // NOVO: Tenta carregar o estado de voto persistente do localStorage
             const contatoPersistidoString = localStorage.getItem(
               `votacao_ultimo_contato_${votacaoId}`
             );
@@ -618,16 +548,14 @@ const Votacao = ({ votacaoAtiva }) => {
               );
               setContato(c);
               setTipoContato(t);
-              // NOTA: setContatoVotante será definido dentro de verificarVotosRealizados
               await verificarVotosRealizados(c, t, votacaoId);
             }
 
-            // Busca votantes recentes
             await buscarVotantesRecentes(votacaoId);
           }
         }
       } catch (err) {
-        console.error("Erro ao carregar votação:", err);
+        // Ignora erro
       } finally {
         setLoading(false);
       }
@@ -636,7 +564,6 @@ const Votacao = ({ votacaoAtiva }) => {
     carregarVotacao();
   }, [votacaoAtiva]);
 
-  // Verifica votos quando contato é digitado
   useEffect(() => {
     const verificarVoto = async () => {
       if (
@@ -644,10 +571,8 @@ const Votacao = ({ votacaoAtiva }) => {
         contato.length >= (tipoContato === "email" ? 5 : 10) &&
         votacaoData
       ) {
-        // Usa a função atualizada
         await verificarVotosRealizados(contato, tipoContato, votacaoData.id);
       } else {
-        // Se o campo for limpo/curto, libera o voto
         setContatoVotante("");
         setVotosRealizados({
           iniciante: false,
@@ -663,7 +588,6 @@ const Votacao = ({ votacaoAtiva }) => {
 
   const votar = (arteId, nivel) => {
     if (votosRealizados[nivel] && !isAdmin) {
-      // Se não for admin, bloqueia
       setMsg(`❌ Você já votou no nível ${nivel}!`);
       return;
     }
@@ -672,20 +596,15 @@ const Votacao = ({ votacaoAtiva }) => {
     if (msg) setMsg("");
   };
 
-  // Enviar voto - ATUALIZADO (com persistência no localStorage)
   const enviarVoto = async (e) => {
     e.preventDefault();
-
     if (!nome.trim() || !contato.trim()) {
       return setMsg("❌ Preencha seu nome e contato.");
     }
 
-    // Níveis selecionados para envio
-    // NOTE: Admin pode tentar enviar votos que já foram realizados, vamos bloquear.
     const votosParaEnviar = Object.keys(votos).filter(
       (nivel) => votos[nivel] && !votosRealizados[nivel]
     );
-
     if (votosParaEnviar.length === 0) {
       if (
         Object.keys(votos).length > 0 &&
@@ -701,14 +620,12 @@ const Votacao = ({ votacaoAtiva }) => {
     try {
       setEnviandoVoto(true);
       setMsg("📤 Registrando seus votos...");
-
       const campoContato =
         tipoContato === "email" ? "email_eleitor" : "whatsapp_eleitor";
       const níveisInseridos = [];
       const níveisPulados = [];
 
       for (const nivel of votosParaEnviar) {
-        // Precaução server-side - Mesmo que o estado do cliente diga que não votou
         const jaVotouNoNivel = await checkAlreadyVotedLevel(
           contato.trim(),
           nivel
@@ -718,7 +635,6 @@ const Votacao = ({ votacaoAtiva }) => {
           continue;
         }
 
-        // inserir voto
         await supabase.from("votos").insert([
           {
             nome_eleitor: nome.trim(),
@@ -727,11 +643,9 @@ const Votacao = ({ votacaoAtiva }) => {
             arte_id: votos[nivel],
           },
         ]);
-
         níveisInseridos.push(nivel);
       }
 
-      // NOVO: Gravar contato do votante no localStorage para persistência após refresh
       if (níveisInseridos.length > 0) {
         try {
           const chaveContato = `votacao_ultimo_contato_${votacaoData.id}`;
@@ -740,30 +654,24 @@ const Votacao = ({ votacaoAtiva }) => {
             JSON.stringify({ contato: contato.trim(), tipo: tipoContato })
           );
         } catch (err) {
-          console.warn("Não foi possível gravar no localStorage:", err);
+          // Ignora erro
         }
       }
 
-      // atualizar estado no cliente (refaz verificação completa)
       await verificarVotosRealizados(contato.trim());
       await buscarVotantesRecentes(votacaoData.id);
 
-      // mensagem ao usuário descrevendo o que aconteceu
       let resumoMsg = "";
       if (níveisInseridos.length)
         resumoMsg += `✅ ${níveisInseridos.length} voto(s) registrado(s). `;
       if (níveisPulados.length)
         resumoMsg += `⚠️ Pularam: ${níveisPulados.join(", ")} (já havia voto).`;
-
       setMsg(resumoMsg || "✅ Votos processados.");
       setVotos({});
       setNome("");
-      // manter contato preenchido para permanecer como "já votou"
       setContatoVotante(contato.trim());
-
       setTimeout(() => setMsg(""), 4000);
     } catch (err) {
-      console.error("Erro ao enviar voto:", err);
       setMsg(`❌ Erro ao registrar voto: ${err.message}`);
     } finally {
       setEnviandoVoto(false);
@@ -775,7 +683,6 @@ const Votacao = ({ votacaoAtiva }) => {
     window.location.reload();
   };
 
-  // Confirmação de exclusão - CORRIGIDA (com limpeza de localStorage)
   const confirmarExclusao = async () => {
     try {
       setExcluindoVotacao(true);
@@ -789,18 +696,14 @@ const Votacao = ({ votacaoAtiva }) => {
     }
   };
 
-  // Renderiza artes por nível (Sem alterações)
   const renderArtesNivel = (nivel, nomeNivel, cor) => {
     if (!votacaoData?.votacao_artes) return null;
-
     const artesDoNivel = votacaoData.votacao_artes.filter(
       (item) => item.envios.nivel === nomeNivel
     );
-
     if (artesDoNivel.length === 0) return null;
 
     const jaVotouNeste = votosRealizados[nivel];
-
     return (
       <div className={`nivel-votacao nivel-${nivel}`} key={nivel}>
         <div className="nivel-header" style={{ borderColor: cor }}>
@@ -816,7 +719,7 @@ const Votacao = ({ votacaoAtiva }) => {
           </span>
         </div>
 
-        {jaVotouNeste && !isAdmin ? ( // Bloqueia APENAS se já votou E NÃO for admin
+        {jaVotouNeste && !isAdmin ? (
           <div className="nivel-bloqueado">
             <p>✅ Você já votou neste nível</p>
           </div>
@@ -836,7 +739,7 @@ const Votacao = ({ votacaoAtiva }) => {
                     name={`voto_${nivel}`}
                     value={item.arte_id}
                     onChange={() => votar(item.arte_id, nivel)}
-                    disabled={enviandoVoto} // Admin pode votar, mas o envio será bloqueado se já votou
+                    disabled={enviandoVoto}
                     hidden
                   />
 
@@ -869,10 +772,9 @@ const Votacao = ({ votacaoAtiva }) => {
   };
 
   // ---------------------------------------------------------------------
-  // 🚀 CORREÇÃO PRINCIPAL: Lógica de Renderização para o Admin
+  // 🚀 Lógica de Renderização Corrigida
   // ---------------------------------------------------------------------
 
-  // Loading
   if (loading) {
     return (
       <div className="loading-container">
@@ -882,17 +784,40 @@ const Votacao = ({ votacaoAtiva }) => {
     );
   }
 
-  // Sem votação ativa
-  if (!votacaoAtiva || !votacaoData) {
+  // PASSO 1: Votação Desligada pelo Controle do Admin (Prioridade Máxima)
+  if (!votacaoAtiva) {
+    return (
+      <div className="sem-votacao-container">
+        <div className="sem-votacao-card">
+          <div className="sem-votacao-icon">❌</div>
+          <h2 className="sem-votacao-titulo">Votação Desativada</h2>
+          <p>A votação está temporariamente desativada.</p>
+          {isAdmin && <p>Admin: Ligue a chave de "Votação Ativa" no painel.</p>}
+        </div>
+      </div>
+    );
+  }
+
+  // PASSO 2: Chave LIGADA (votacaoAtiva = true), mas NADA no Banco de Dados
+  if (!votacaoData) {
+    if (mostrarCriarVotacao && isAdmin) {
+      return (
+        <CriarVotacao
+          onVotacaoCriada={handleVotacaoCriada}
+          onFechar={() => setMostrarCriarVotacao(false)}
+        />
+      );
+    }
+
     return (
       <div className="sem-votacao-container">
         <div className="sem-votacao-card">
           <div className="sem-votacao-icon">🚧</div>
-          <h2 className="sem-votacao-titulo">Votação Não Disponível</h2>
-          <p>A votação do desafio semanal não está ativa no momento.</p>
+          <h2 className="sem-votacao-titulo">Votação Não Iniciada</h2>
+          <p>O Administrador precisa criar a votação semanal.</p>
           {isAdmin && (
             <div className="admin-actions">
-              <p>Como administrador, você pode criar uma nova votação.</p>
+              <p>Como administrador, você pode criar uma nova votação agora.</p>
               <button
                 className="btn-admin-criar"
                 onClick={() => {
@@ -904,21 +829,13 @@ const Votacao = ({ votacaoAtiva }) => {
             </div>
           )}
         </div>
-
-        {/* Modal Criar Votação */}
-        {mostrarCriarVotacao && isAdmin && (
-          <CriarVotacao
-            onVotacaoCriada={handleVotacaoCriada}
-            onFechar={() => setMostrarCriarVotacao(false)}
-          />
-        )}
       </div>
     );
   }
 
   const votouEmAlgumNivel = Object.values(votosRealizados).some(Boolean);
 
-  // 1. Não há candidatos (Ninguém deve ver a votação vazia)
+  // 3. Sem candidatos na votação ativa
   if (!votacaoData.votacao_artes?.length) {
     return (
       <div className="sem-votacao-container">
@@ -946,7 +863,7 @@ const Votacao = ({ votacaoAtiva }) => {
     );
   }
 
-  // 2. Usuário comum já votou em QUALQUER nível (Bloqueio total)
+  // 4. Usuário comum já votou em QUALQUER nível (Bloqueio total)
   if (!isAdmin && contatoVotante && votouEmAlgumNivel) {
     return (
       <JaVotou
@@ -957,17 +874,15 @@ const Votacao = ({ votacaoAtiva }) => {
     );
   }
 
-  // 3. Renderização Normal (Admin e usuários que não votaram)
+  // 5. Renderização Normal (Admin e usuários que não votaram)
   return (
     <div className="votacao-container">
-      {/* Header */}
       <div className="votacao-header">
         <h1 className="votacao-titulo">🗳️ {votacaoData.titulo}</h1>
         <p className="votacao-descricao">
           Vote na sua arte favorita em cada nível
         </p>
 
-        {/* CONTROLE DE EXCLUSÃO PARA O ADMIN */}
         {isAdmin && (
           <div className="admin-controls">
             <button
@@ -987,9 +902,7 @@ const Votacao = ({ votacaoAtiva }) => {
         </div>
       </div>
 
-      {/* Formulário */}
       <form onSubmit={enviarVoto} className="votacao-form">
-        {/* Dados do Eleitor */}
         <div className="eleitor-card">
           <h3 className="section-title">👤 Identificação do Eleitor</h3>
           <div className="eleitor-dados">
@@ -1032,14 +945,12 @@ const Votacao = ({ votacaoAtiva }) => {
           </div>
         </div>
 
-        {/* Votação por Níveis */}
         <div className="niveis-votacao">
           {renderArtesNivel("iniciante", "Iniciante", "#4CAF50")}
           {renderArtesNivel("intermediario", "Intermediário", "#FF9800")}
           {renderArtesNivel("avancado", "Avançado", "#F44336")}
         </div>
 
-        {/* Botão de Envio */}
         <div className="submit-card">
           <button
             type="submit"
@@ -1066,7 +977,6 @@ const Votacao = ({ votacaoAtiva }) => {
         </div>
       </form>
 
-      {/* Footer */}
       <div className="votacao-footer">
         <p>
           💝 Sistema desenvolvido por <strong>CK</strong>
@@ -1074,7 +984,6 @@ const Votacao = ({ votacaoAtiva }) => {
         <p>🎨 Promovendo arte e criatividade na comunidade</p>
       </div>
 
-      {/* Modal de Confirmação de Exclusão */}
       {mostrarConfirmacao && isAdmin && (
         <ConfirmacaoExclusao
           onConfirmar={confirmarExclusao}
