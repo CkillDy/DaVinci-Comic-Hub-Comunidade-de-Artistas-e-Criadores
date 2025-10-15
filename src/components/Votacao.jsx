@@ -8,7 +8,7 @@ import {
 
 const SUPABASE_URL = "https://ajtdyjlzwpzqfqhkbrzj.supabase.co";
 const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdGR5amx6d3B6cWZxaGticnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1MDYzNDIsImV4cCI6MjA3NDA4MjM0Mn0.g0hxkZrZ5jiEMsIK1RU0QVuI4LWgXZD56HWrcsNk";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdGR5amx6d3B6cWZxaGticnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1MDYzNDIsImV4cCI6MjA3NDA4MjM0Mn0.g0hxkZrZ5jiEMsIK1RU0QVuI4LWgXZD56HWrcyNcslk";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   db: {

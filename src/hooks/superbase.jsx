@@ -11,35 +11,45 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   },
 });
 
-// ========================
-// FUNÇÕES DE UPLOAD
-// ========================
 export const uploadArquivo = async (file, bucket = "desenhos") => {
-  if (!file) return null;
+    if (!file) return null;
 
-  const fileName = `uploads/${Date.now()}_${file.name}`;
+    // --- CORREÇÃO AQUI: Sanitização do nome do arquivo ---
+    const originalFileName = file.name;
+    const sanitizedFileName = originalFileName
+        .normalize("NFD") // Decompõe caracteres acentuados (á -> a´)
+        .replace(/[\u0300-\u036f]/g, "") // Remove os diacríticos (a´ -> a)
+        .replace(/[^a-zA-Z0-9.\-]/g, "_") // Substitui tudo que não é letra/número/ponto/hífen por _
+        .toLowerCase();
+    const fileName = `uploads/${Date.now()}_${sanitizedFileName}`;
+    // --------------------------------------------------------
 
-  try {
-    const { error } = await supabase.storage
-      .from(bucket)
-      .upload(fileName, file);
+    try {
+        const { error: uploadError } = await supabase.storage
+            .from(bucket)
+            .upload(fileName, file);
 
-    if (error) {
-      console.error("Erro no upload:", error);
-      return null;
+        if (uploadError) {
+            console.error("❌ Erro no upload Supabase Storage:", uploadError);
+            // Agora este erro virá apenas por permissão (400/403) ou outro problema
+            throw new Error(`Falha no upload do arquivo: ${uploadError.message}`);
+        }
+
+        const { data: publicData } = supabase.storage
+            .from(bucket)
+            .getPublicUrl(fileName);
+
+        if (!publicData?.publicUrl) {
+            console.error("❌ Erro ao obter URL pública após upload.");
+            throw new Error("O arquivo foi enviado, mas não foi possível gerar a URL pública.");
+        }
+
+        return publicData.publicUrl;
+    } catch (err) {
+        console.error("Erro inesperado no upload:", err);
+        throw err;
     }
-
-    const { data: publicData } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(fileName);
-
-    return publicData.publicUrl;
-  } catch (err) {
-    console.error("Erro inesperado no upload:", err);
-    return null;
-  }
 };
-
 // ========================
 // FUNÇÃO DE DEBUG - TESTE DE CONEXÃO
 // ========================
@@ -71,24 +81,29 @@ export const testarConexao = async () => {
 };
 
 // ============= FUNÇÕES DE ENVIO (mantidas como estão) =============
-export const criarEnvio = async (dadosEnvio) => {
-  try {
-    const { error } = await supabase.from("envios").insert([
-      {
-        nome: dadosEnvio.nome,
-        whatsapp: dadosEnvio.whatsapp,
-        nivel: dadosEnvio.nivel,
-        desafio: dadosEnvio.desafio,
-        arquivo_url: dadosEnvio.arquivo_url,
-      },
-    ]);
 
-    if (error) throw new Error(`Erro ao salvar no banco: ${error.message}`);
-    return true;
-  } catch (err) {
-    console.error("Erro ao criar envio:", err);
-    throw err;
-  }
+export const criarEnvio = async (dadosEnvio) => {
+    try {
+        // 1. INSERT no Banco de Dados (Database)
+        const { error } = await supabase.from("envios").insert([
+            {
+                nome: dadosEnvio.nome,
+                whatsapp: dadosEnvio.whatsapp,
+                nivel: dadosEnvio.nivel,
+                desafio: dadosEnvio.desafio,
+                arquivo_url: dadosEnvio.arquivo_url,
+            },
+        ]);
+
+        if (error) {
+            console.error("❌ Erro Supabase ao salvar envio:", error);
+            throw new Error(`Falha ao salvar no banco: ${error.message}`);
+        }
+        return true;
+    } catch (err) {
+        console.error("Erro ao criar envio:", err);
+        throw err;
+    }
 };
 
 export const buscarTodosEnvios = async () => {
@@ -528,5 +543,7 @@ export const buscarEstatisticas = async () => {
     };
   }
 };
+
+
 
 export { supabase };
