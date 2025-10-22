@@ -1,5 +1,5 @@
 /* Importação de fontes */
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
 * {
   padding: 0;
@@ -21,7 +21,7 @@ html {
 /* Estilos Globais */
 body {
   margin: 0;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
   background-color: #0d0d1b;
   color: #e0e0e0;
   line-height: 1.6;
@@ -233,7 +233,7 @@ textarea {
   margin: 2rem auto;
   padding: 0 1rem;
   color: #e0e0e0;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 .envio-titulo {
@@ -936,7 +936,7 @@ textarea {
 
 /* Padrão artístico sobreposto para dar textura */
 .perfil-hero::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -1023,7 +1023,7 @@ textarea {
 }
 
 .perfil-card::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -1169,7 +1169,7 @@ textarea {
 }
 
 .perfil-focus-item::before {
-  content: "";
+  content: '';
   position: absolute;
   top: -50%;
   left: -50%;
@@ -1273,7 +1273,7 @@ textarea {
 }
 
 .perfil-cta-card::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: -100%;
@@ -1551,7 +1551,7 @@ PARTICIPAR DO GRUPO
   max-width: 1200px;
   margin: 2rem auto 4rem;
   padding: 0 1rem;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
   color: #e0e0e0;
 }
 
@@ -1562,14 +1562,14 @@ PARTICIPAR DO GRUPO
 }
 
 .home-title {
-  font-size: 2.5rem;
+  font-size: 2.3rem;
   font-weight: 700;
   color: #667eea;
   margin-bottom: 0.5rem;
 }
 
 .home-description {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #aaa;
 }
 
@@ -1955,7 +1955,6 @@ PARTICIPAR DO GRUPO
 }
 
 /* Galeria */
-/* Galeria - CSS Melhorado */
 .galeria-main {
   margin-top: 2rem;
   padding: 1.5rem;
@@ -1967,7 +1966,7 @@ PARTICIPAR DO GRUPO
 
 .galeria-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .galeria-title {
@@ -1986,11 +1985,64 @@ PARTICIPAR DO GRUPO
   font-weight: 500;
 }
 
+.galeria-filtros {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filtro-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filtro-group label {
+  color: #b4b8d1;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.filtro-group select {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 2px solid #44476a;
+  background: #1a1d35;
+  color: #e2e8f0;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filtro-group select:hover {
+  border-color: #667eea;
+}
+
+.galeria-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (min-width: 640px) {
+  .galeria-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .galeria-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2rem;
+  }
+}
+
 .galeria-empty {
   grid-column: 1 / -1;
   text-align: center;
   color: #aaa;
-  font-size: 1.1rem;
   padding: 3rem 1rem;
 }
 
@@ -2001,69 +2053,15 @@ PARTICIPAR DO GRUPO
   opacity: 0.7;
 }
 
-/* Grid Responsivo - Principais Breakpoints */
-.galeria-grid {
-  display: grid;
-  gap: 1.5rem;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-
-  /* Mobile pequeno (320px+): 3 colunas */
-  grid-template-columns: repeat(3, 1fr);
-}
-
-/* Mobile grande (480px+): 3 colunas */
-@media (min-width: 480px) {
-  .galeria-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-  }
-}
-
-/* Tablet pequeno (640px+): 4 colunas */
-@media (min-width: 640px) {
-  .galeria-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-  }
-}
-
-/* Tablet grande (768px+): 4 colunas */
-@media (min-width: 768px) {
-  .galeria-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.75rem;
-  }
-}
-
-/* Desktop pequeno (1024px+): 5 colunas */
-@media (min-width: 1024px) {
-  .galeria-grid {
-    grid-template-columns: repeat(5, 1fr);
-    gap: 2rem;
-  }
-}
-
-/* Desktop grande (1280px+): 5 colunas com gap maior */
-@media (min-width: 1280px) {
-  .galeria-grid {
-    grid-template-columns: repeat(5, 1fr);
-    gap: 2.5rem;
-  }
-}
-
 .galeria-card {
   border: 2px solid #44476a;
   border-radius: 12px;
   background: linear-gradient(135deg, #121629, #1a1d35);
-  padding: 0;
   display: flex;
   flex-direction: column;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   overflow: hidden;
-  position: relative;
 }
 
 .galeria-card:hover {
@@ -2075,9 +2073,9 @@ PARTICIPAR DO GRUPO
 .galeria-image-container {
   position: relative;
   width: 100%;
-  overflow: hidden;
   aspect-ratio: 1;
   background: #0f1419;
+  overflow: hidden;
 }
 
 .image-skeleton {
@@ -2092,7 +2090,6 @@ PARTICIPAR DO GRUPO
   0% {
     background-position: 200% 0;
   }
-
   100% {
     background-position: -200% 0;
   }
@@ -2132,10 +2129,7 @@ PARTICIPAR DO GRUPO
 
 .galeria-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: linear-gradient(
     45deg,
     rgba(102, 126, 234, 0.9),
@@ -2146,7 +2140,7 @@ PARTICIPAR DO GRUPO
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease;
   backdrop-filter: blur(2px);
 }
 
@@ -2176,18 +2170,15 @@ PARTICIPAR DO GRUPO
 .galeria-info {
   padding: 1rem 0.75rem;
   text-align: center;
-  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .galeria-artist-name {
   font-size: 0.9rem;
   font-weight: 600;
   color: #e2e8f0;
-  margin-bottom: 0.5rem;
-  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2196,40 +2187,33 @@ PARTICIPAR DO GRUPO
 .galeria-level {
   font-size: 0.8rem;
   color: #94a3b8;
-  margin-bottom: 0.75rem;
   font-weight: 500;
 }
 
-.galeria-challenge-badge {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
+.galeria-challenge-badge,
+.galeria-free-badge {
   padding: 0.4rem 0.8rem;
   border-radius: 20px;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.galeria-challenge-badge {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .galeria-free-badge {
   background: linear-gradient(45deg, #4a5568, #2d3748);
   color: #cbd5e0;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-/* Modal - Melhorado */
 .galeria-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(4px);
   display: flex;
@@ -2244,7 +2228,6 @@ PARTICIPAR DO GRUPO
   from {
     opacity: 0;
   }
-
   to {
     opacity: 1;
   }
@@ -2267,33 +2250,37 @@ PARTICIPAR DO GRUPO
     transform: scale(0.9) translateY(20px);
     opacity: 0;
   }
-
   to {
     transform: scale(1) translateY(0);
     opacity: 1;
   }
 }
 
-.modal-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
+.modal-close,
+.nav-btn {
   background: rgba(0, 0, 0, 0.8);
   border: 2px solid #44476a;
   color: white;
-  font-size: 1.5rem;
-  width: 45px;
-  height: 45px;
   border-radius: 50%;
   cursor: pointer;
-  z-index: 1001;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.modal-close:hover {
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  width: 45px;
+  height: 45px;
+  z-index: 1001;
+}
+
+.modal-close:hover,
+.nav-btn:hover {
   background: #667eea;
   border-color: #667eea;
   transform: scale(1.1);
@@ -2313,26 +2300,11 @@ PARTICIPAR DO GRUPO
 }
 
 .nav-btn {
-  background: rgba(0, 0, 0, 0.8);
-  border: 2px solid #44476a;
-  color: white;
   font-size: 2rem;
   width: 50px;
   height: 50px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.3s ease;
   pointer-events: all;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-weight: bold;
-}
-
-.nav-btn:hover {
-  background: #667eea;
-  border-color: #667eea;
-  transform: scale(1.1);
 }
 
 .modal-image-container {
@@ -2345,18 +2317,8 @@ PARTICIPAR DO GRUPO
 }
 
 .modal-image {
-  max-width: 100%;
-  max-height: 70vh;
-  object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.modal-info {
-  padding: 1.5rem;
-  text-align: center;
-  background: linear-gradient(135deg, #121629, #1a1d35);
-  border-top: 1px solid #292d4f;
 }
 
 .modal-counter {
@@ -2369,72 +2331,30 @@ PARTICIPAR DO GRUPO
   border-top: 1px solid #292d4f;
 }
 
-/* Responsividade Mobile Específica */
-@media (max-width: 479px) {
+@media (max-width: 640px) {
   .galeria-main {
-    margin-top: 1rem;
     padding: 1rem;
-    border-radius: 12px;
   }
 
   .galeria-title {
     font-size: 1.5rem;
   }
 
-  .galeria-subtitle {
-    font-size: 0.9rem;
+  .galeria-filtros {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .galeria-grid {
-    gap: 1rem;
+  .filtro-group {
+    justify-content: space-between;
   }
 
-  .galeria-info {
-    padding: 0.75rem 0.5rem;
-  }
-
-  .galeria-artist-name {
-    font-size: 0.8rem;
-  }
-
-  .galeria-level {
-    font-size: 0.75rem;
-  }
-
-  .galeria-challenge-badge,
-  .galeria-free-badge {
-    font-size: 0.65rem;
-    padding: 0.3rem 0.6rem;
-  }
-
-  .modal-content {
-    margin: 0.5rem;
-    max-width: calc(100vw - 1rem);
-    max-height: calc(100vh - 1rem);
-  }
-
-  .modal-close {
-    width: 40px;
-    height: 40px;
-    font-size: 1.3rem;
-  }
-
+  .modal-close,
   .nav-btn {
     width: 40px;
     height: 40px;
-    font-size: 1.5rem;
-  }
-
-  .modal-image-container {
-    padding: 1rem;
-    min-height: 50vh;
-  }
-
-  .modal-image {
-    max-height: 60vh;
   }
 }
-
 /* Video Gallery - CSS Melhorado */
 .video-gallery-slider {
   margin: 2rem 0;
@@ -2449,7 +2369,7 @@ PARTICIPAR DO GRUPO
 }
 
 .video-gallery-slider::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -2475,7 +2395,7 @@ PARTICIPAR DO GRUPO
   margin-bottom: 2rem;
   font-size: 2rem;
   font-weight: 700;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
   background: linear-gradient(45deg, #667eea, #764ba2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -2656,7 +2576,7 @@ PARTICIPAR DO GRUPO
   margin-bottom: 1rem;
   color: #667eea;
   font-weight: 700;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
   line-height: 1.3;
 }
 
@@ -2664,7 +2584,7 @@ PARTICIPAR DO GRUPO
   font-size: 0.95rem;
   color: #94a3b8;
   margin: 0.5rem 0;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 500;
 }
 
@@ -2720,7 +2640,7 @@ PARTICIPAR DO GRUPO
 }
 
 .dot.active::after {
-  content: "";
+  content: '';
   position: absolute;
   top: -3px;
   left: -3px;
@@ -2751,7 +2671,7 @@ PARTICIPAR DO GRUPO
   padding: 0.75rem 1.5rem;
   border-radius: 25px;
   cursor: pointer;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 0.95rem;
   transition: all 0.3s ease;
@@ -4581,5 +4501,148 @@ PARTICIPAR DO GRUPO
 
   .grafico-titulo {
     font-size: 1.1rem;
+  }
+}
+
+/* ========================================
+   ÁREA DE DESENHOS - NOVOS ESTILOS
+======================================== */
+/* ========================================
+   ÁREA DE DESENHOS - TEMA DARK
+======================================== */
+
+/* Barra de Pesquisa */
+.search-bar-container {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 3rem 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #3a3a6b;
+  border-radius: 10px;
+  background-color: #121227;
+  color: #e0e0e0;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #7a7a9e;
+}
+
+.search-input:focus {
+  background-color: #1b1b3a;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.search-clear-btn:hover {
+  background: rgba(102, 126, 234, 0.3);
+  color: #fff;
+}
+
+/* ========================================
+   FILTROS POR DESAFIO
+======================================== */
+
+.desafio-filters {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid #3a3a6b;
+  background: #121227;
+  border-radius: 25px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #aaa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.filter-chip:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  color: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+.filter-chip.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: #667eea;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* ========================================
+   INFO DE RESULTADOS
+======================================== */
+
+.search-result-info {
+  margin-bottom: 1.25rem;
+  padding: 0.875rem 1.25rem;
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 10px;
+  color: #667eea;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ========================================
+   TAG DE DESAFIO
+======================================== */
+
+.tag--desafio {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+  color: white;
+  font-weight: 600;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+======================================== */
+
+@media (max-width: 768px) {
+  .desafio-filters {
+    gap: 0.5rem;
+  }
+
+  .filter-chip {
+    font-size: 0.8125rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .envios-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
   }
 }

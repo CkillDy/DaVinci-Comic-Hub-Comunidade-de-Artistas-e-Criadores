@@ -1,251 +1,335 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 
 const VideoGallerySlider = () => {
-  const [currentVideo, setCurrentVideo] = useState(0);
-  const [videos, setVideos] = useState([]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [currentVideo, setCurrentVideo] = useState(0)
+  const [videos, setVideos] = useState([])
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const CONFIG_URL = 'https://raw.githubusercontent.com/CkillDy/davinci-dados/main/config.json';
+  const CONFIG_URL =
+    'https://raw.githubusercontent.com/CkillDy/davinci-dados/main/config.json'
 
-  // Função para converter URL do YouTube Shorts para formato embedável
-  const convertYouTubeUrl = (url) => {
-    // Se for um YouTube Shorts URL
+  // Converter URL normal ou shorts em URL embedável
+  const convertYouTubeUrl = url => {
+    if (!url) return ''
     if (url.includes('youtube.com/shorts/')) {
-      const videoId = url.split('/shorts/')[1].split('?')[0];
-      return `https://www.youtube.com/embed/${videoId}`;
+      const id = url.split('/shorts/')[1].split('?')[0]
+      return `https://www.youtube.com/embed/${id}`
     }
-    // Se for URL normal do YouTube
     if (url.includes('youtube.com/watch?v=')) {
-      const videoId = url.split('v=')[1].split('&')[0];
-      return `https://www.youtube.com/embed/${videoId}`;
+      const id = url.split('v=')[1].split('&')[0]
+      return `https://www.youtube.com/embed/${id}`
     }
-    // Se for youtu.be
     if (url.includes('youtu.be/')) {
-      const videoId = url.split('youtu.be/')[1].split('?')[0];
-      return `https://www.youtube.com/embed/${videoId}`;
+      const id = url.split('youtu.be/')[1].split('?')[0]
+      return `https://www.youtube.com/embed/${id}`
     }
-    // Se já for embed, retorna como está
-    return url;
-  };
+    return url
+  }
+
+  // Gerar miniatura automaticamente
+  const getThumbnailFromUrl = url => {
+    try {
+      const id = url.split(/shorts\/|v=|youtu\.be\//)[1].split(/[?&]/)[0]
+      return `https://img.youtube.com/vi/${id}/hqdefault.jpg`
+    } catch {
+      return 'https://via.placeholder.com/315x560/000000/ffffff?text=🎬+Video'
+    }
+  }
 
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        setLoading(true);
-        setError(null);
+        setLoading(true)
+        setError(null)
 
-        const response = await fetch(CONFIG_URL);
-        if (!response.ok) {
-          throw new Error(`Erro ao carregar dados: ${response.status}`);
-        }
+        const res = await fetch(CONFIG_URL)
+        if (!res.ok) throw new Error('Erro ao buscar vídeos.')
 
-        const data = await response.json();
+        const data = await res.json()
+        if (!data.videos || !Array.isArray(data.videos))
+          throw new Error('Nenhum vídeo encontrado.')
 
-        if (data.videos && Array.isArray(data.videos)) {
-          // Converte as URLs para formato embedável
-          const processedVideos = data.videos.map(video => ({
-            ...video,
-            embedUrl: convertYouTubeUrl(video.url),
-            originalUrl: video.url
-          }));
-          setVideos(processedVideos);
-        } else {
-          throw new Error('Nenhum vídeo encontrado no arquivo de configuração');
-        }
+        // embaralhar lista para ficar aleatório
+        const shuffled = [...data.videos].sort(() => Math.random() - 0.5)
+
+        const processed = shuffled.map(v => ({
+          ...v,
+          embedUrl: convertYouTubeUrl(v.url),
+          thumbnail: v.thumbnail || getThumbnailFromUrl(v.url),
+          originalUrl: v.url
+        }))
+
+        setVideos(processed)
       } catch (err) {
-        console.error('Erro ao buscar vídeos:', err);
-        setError(err.message);
-
-        // Fallback com dados de exemplo
-        setVideos([
-          {
-            id: 1,
-            nomeDesafio: "Exemplo - Garras e Chifres",
-            editor: "Editor Exemplo",
-            data: "2025",
-            thumbnail: "https://via.placeholder.com/560x315/1a1a1a/ffffff?text=Thumbnail+1",
-            embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            originalUrl: "https://youtube.com/shorts/dQw4w9WgXcQ"
-          }
-        ]);
+        console.error(err)
+        setError(err.message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchVideos();
-  }, []);
+    fetchVideos()
+  }, [])
 
   const nextVideo = () => {
-    setCurrentVideo((prev) => (prev + 1) % videos.length);
-    setIsPlaying(false);
-  };
+    setCurrentVideo(p => (p + 1) % videos.length)
+    setIsPlaying(false)
+  }
 
   const prevVideo = () => {
-    setCurrentVideo((prev) => (prev - 1 + videos.length) % videos.length);
-    setIsPlaying(false);
-  };
-
-  const refreshData = async () => {
-    const fetchVideos = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch(CONFIG_URL + '?t=' + Date.now());
-        if (!response.ok) {
-          throw new Error(`Erro ao carregar dados: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.videos && Array.isArray(data.videos)) {
-          const processedVideos = data.videos.map(video => ({
-            ...video,
-            embedUrl: convertYouTubeUrl(video.url),
-            originalUrl: video.url
-          }));
-          setVideos(processedVideos);
-          setCurrentVideo(0);
-          setIsPlaying(false);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    await fetchVideos();
-  };
-
-  if (loading) {
-    return <div>Carregando vídeos...</div>;
+    setCurrentVideo(p => (p - 1 + videos.length) % videos.length)
+    setIsPlaying(false)
   }
 
-  if (error) {
+  const refreshData = () => window.location.reload()
+
+  if (loading) return <div>🎥 Carregando vídeos...</div>
+  if (error)
     return (
       <div>
-        <p>Erro ao carregar vídeos: {error}</p>
-        <button onClick={refreshData}>Tentar Novamente</button>
+        <p>Erro: {error}</p>
+        <button onClick={refreshData}>🔄 Tentar novamente</button>
       </div>
-    );
-  }
+    )
 
-  if (!videos.length) {
+  if (!videos.length)
     return (
       <div>
-        <p>Nenhum vídeo disponível no momento.</p>
-        <button onClick={refreshData}>Atualizar</button>
+        <p>Nenhum vídeo disponível.</p>
+        <button onClick={refreshData}>🔄 Atualizar</button>
       </div>
-    );
-  }
+    )
 
-  const video = videos[currentVideo];
+  const video = videos[currentVideo]
 
   return (
-    <div className="video-gallery-slider">
-      <h2>🎬 Vídeos dos Desafios</h2>
+    <div
+      className='video-gallery-slider'
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        color: '#fff',
+        fontFamily: 'Poppins, sans-serif'
+      }}
+    >
+      <h2 style={{ marginBottom: '12px', fontSize: '22px' }}>
+        🎬 Desafios Criativos
+      </h2>
 
-      <div className="video-container">
-        <button className="nav-btn prev" onClick={prevVideo}>‹</button>
+      <div
+        className='video-container'
+        style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '16px'
+        }}
+      >
+        {/* Botão anterior */}
+        <button
+          onClick={prevVideo}
+          style={{
+            background: 'rgba(255,255,255,0.1)',
+            border: 'none',
+            color: '#fff',
+            fontSize: '32px',
+            width: '45px',
+            height: '45px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            transition: '0.3s'
+          }}
+        >
+          ‹
+        </button>
 
-        <div className="video-main" style={{ textAlign: 'center' }}>
+        {/* Área principal */}
+        <div
+          className='video-frame'
+          style={{
+            width: '315px',
+            height: '560px',
+            borderRadius: '18px',
+            overflow: 'hidden',
+            position: 'relative',
+            boxShadow: '0 0 25px rgba(0,0,0,0.5)',
+            background: 'rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            transition: 'transform 0.4s ease, box-shadow 0.4s ease'
+          }}
+        >
           {isPlaying ? (
-            <div className="video-player" style={{
-              width: '315px',
-              height: '560px',
-              margin: '0 auto',
-              backgroundColor: '#000',
-              borderRadius: '12px',
-              overflow: 'hidden'
-            }}>
-              <iframe
-                src={video.embedUrl}
-                width="315"
-                height="560"
-                frameBorder="0"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                title={video.nomeDesafio}
-                style={{ borderRadius: '12px' }}
-              ></iframe>
-            </div>
+            <iframe
+              src={video.embedUrl}
+              width='315'
+              height='560'
+              frameBorder='0'
+              allow='autoplay; encrypted-media'
+              allowFullScreen
+              title={video.nomeDesafio}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '18px'
+              }}
+            ></iframe>
           ) : (
-            <div className="video-thumbnail" onClick={() => setIsPlaying(true)} style={{
-              cursor: 'pointer',
-              width: '315px',
-              height: '560px',
-              margin: '0 auto',
-              position: 'relative',
-              backgroundColor: '#000',
-              borderRadius: '12px',
-              overflow: 'hidden'
-            }}>
+            <div
+              onClick={() => setIsPlaying(true)}
+              style={{
+                cursor: 'pointer',
+                width: '100%',
+                height: '100%',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
               <img
                 src={video.thumbnail}
                 alt={video.nomeDesafio}
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover'
+                  objectFit: 'cover',
+                  filter: 'blur(2px) brightness(0.7)',
+                  transition: '0.3s'
                 }}
-                onError={(e) => {
-                  e.target.src = "https://via.placeholder.com/315x560/1a1a1a/ffffff?text=📱+Shorts";
+                onError={e => {
+                  e.target.src =
+                    'https://via.placeholder.com/315x560/1a1a1a/ffffff?text=🎬+Shorts'
                 }}
               />
-              <div className="play-overlay" style={{
-                position: 'absolute',
-                top: '0',
-                left: '0',
-                right: '0',
-                bottom: '0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'rgba(0,0,0,0.3)'
-              }}>
-                <span className="play-btn" style={{
-                  fontSize: '48px',
-                  color: 'white',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.5)'
-                }}>▶</span>
+
+              {/* camada de vidro */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background:
+                    'linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.1))',
+                  backdropFilter: 'blur(8px)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  animation: 'glow 3s infinite ease-in-out'
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '56px',
+                    color: 'white',
+                    textShadow: '0 0 15px rgba(255,255,255,0.8)'
+                  }}
+                >
+                  ▶
+                </span>
               </div>
             </div>
           )}
-
-          <div className="video-info">
-            <h3>{video.nomeDesafio}</h3>
-            <p>Editado por: {video.editor}</p>
-            <p>Data: {video.data}</p>
-            <p>
-              <a href={video.originalUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'none' }}>
-                Ver no Drive 🔗
-              </a>
-            </p>
-          </div>
         </div>
 
-        <button className="nav-btn next" onClick={nextVideo}>›</button>
+        {/* Botão próximo */}
+        <button
+          onClick={nextVideo}
+          style={{
+            background: 'rgba(255,255,255,0.1)',
+            border: 'none',
+            color: '#fff',
+            fontSize: '32px',
+            width: '45px',
+            height: '45px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            transition: '0.3s'
+          }}
+        >
+          ›
+        </button>
       </div>
 
-      <div className="video-dots">
-        {videos.map((_, index) => (
-          <button
-            key={index}
-            className={`dot ${index === currentVideo ? 'active' : ''}`}
+      {/* Informações do vídeo */}
+      <div style={{ textAlign: 'center', marginTop: '16px' }}>
+        <h3 style={{ fontSize: '18px', marginBottom: '4px' }}>
+          {video.nomeDesafio}
+        </h3>
+        <p style={{ opacity: 0.8, marginBottom: '4px' }}>🎨 {video.editor}</p>
+        <p style={{ opacity: 0.7, marginBottom: '8px' }}>📅 {video.data}</p>
+        <a
+          href={video.originalUrl}
+          target='_blank'
+          rel='noopener noreferrer'
+          style={{
+            color: '#61dafb',
+            textDecoration: 'none',
+            fontWeight: '600'
+          }}
+        >
+          🔗 Ver no YouTube
+        </a>
+      </div>
+
+      {/* Pontinhos de navegação */}
+      <div style={{ marginTop: '12px' }}>
+        {videos.map((_, i) => (
+          <span
+            key={i}
             onClick={() => {
-              setCurrentVideo(index);
-              setIsPlaying(false);
+              setCurrentVideo(i)
+              setIsPlaying(false)
+            }}
+            style={{
+              display: 'inline-block',
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              background:
+                i === currentVideo
+                  ? 'linear-gradient(45deg, #61dafb, #bb86fc)'
+                  : 'rgba(255,255,255,0.3)',
+              margin: '0 4px',
+              cursor: 'pointer',
+              transition: '0.3s'
             }}
           />
         ))}
       </div>
 
-      <button className='refresh-btn' onClick={refreshData} style={{ marginTop: '20px' }}>🔄 Atualizar Dados</button>
-    </div>
-  );
-};
+      {/* Botão atualizar */}
+      <button
+        onClick={refreshData}
+        style={{
+          marginTop: '18px',
+          background: 'rgba(255,255,255,0.1)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          padding: '8px 16px',
+          borderRadius: '8px',
+          color: '#fff',
+          cursor: 'pointer',
+          transition: '0.3s'
+        }}
+      >
+        🔄 Atualizar
+      </button>
 
-export default VideoGallerySlider;
+      <style>
+        {`
+          @keyframes glow {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+          }
+        `}
+      </style>
+    </div>
+  )
+}
+
+export default VideoGallerySlider
